@@ -30,10 +30,6 @@ class AzureDocumentIntelligenceClient:
         self.client: DocumentIntelligenceClient = DocumentIntelligenceClient(
             endpoint=self.endpoint,
             credential=AzureKeyCredential(self.key),
-            features=[
-                DocumentAnalysisFeature.FORMULAS,
-                DocumentAnalysisFeature.STYLE_FONT,
-            ],
         )
 
     def set_features(self, features: List[DocumentAnalysisFeature]):
@@ -58,7 +54,12 @@ class AzureDocumentIntelligenceClient:
         """
         document_bytes = open(document_path, "rb").read()
         poller = self.client.begin_analyze_document(
-            "prebuilt-layout", AnalyzeDocumentRequest(bytes_source=document_bytes)
+            "prebuilt-layout",
+            AnalyzeDocumentRequest(bytes_source=document_bytes),
+            features=[
+                DocumentAnalysisFeature.FORMULAS,
+                DocumentAnalysisFeature.STYLE_FONT,
+            ],
         )
         while not poller.done():
             print("Waiting for result...")
@@ -71,7 +72,9 @@ class AzureDocumentIntelligenceClient:
             print("Done!")
             result: AnalyzeResult = poller.result()
             print("Result is ready!")
-            with open(os.path.join(os.path.dirname(document_path), "result.json"), "w") as f:
+            with open(
+                os.path.join(os.path.dirname(document_path), "result.json"), "w"
+            ) as f:
                 f.write(result.__str__())
             return result
 
@@ -83,7 +86,12 @@ class AzureDocumentIntelligenceClient:
             document_bytes (bytes): 分析するドキュメントのバイト列
         """
         poller = self.client.begin_analyze_document(
-            "prebuilt-layout", AnalyzeDocumentRequest(bytes_source=document_bytes)
+            "prebuilt-layout",
+            AnalyzeDocumentRequest(bytes_source=document_bytes),
+            features=[
+                DocumentAnalysisFeature.FORMULAS,
+                DocumentAnalysisFeature.STYLE_FONT,
+            ],
         )
         while not poller.done():
             print("Waiting for result...")
@@ -99,7 +107,12 @@ class AzureDocumentIntelligenceClient:
             document_url (str): 分析するドキュメントのURL
         """
         poller = self.client.begin_analyze_document(
-            "prebuilt-layout", AnalyzeDocumentRequest(url_source=document_url)
+            "prebuilt-layout",
+            AnalyzeDocumentRequest(url_source=document_url),
+            features=[
+                DocumentAnalysisFeature.FORMULAS,
+                DocumentAnalysisFeature.STYLE_FONT,
+            ],
         )
         while not poller.done():
             print("Waiting for result...")

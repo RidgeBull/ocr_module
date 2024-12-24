@@ -4,7 +4,11 @@ from ocr.domain.entities import Section, TextParagraph, Table
 from ocr.domain.repositories import IPDFGeneratorRepository
 from typing import List, Tuple
 from logging import getLogger
+import matplotlib as mpl
+
+mpl.use("pgf")
 import matplotlib.pyplot as plt
+import japanize_matplotlib
 
 
 def convert_bbox_to_point(
@@ -21,7 +25,13 @@ def convert_bbox_to_point(
 class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
     def __init__(self):
         self.logger = getLogger(__name__)
-        plt.rc("text", usetex=True)
+        plt.rcParams.update(
+            {
+                "pgf.texsystem": "pdflatex",
+                "text.usetex": True,
+                "pgf.rcfonts": False,
+            }
+        )
 
     def generate_pdf(self, sections: List[Section], page_num: int, output_path: str):
         self.doc = pymupdf.Document()
@@ -66,13 +76,18 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
         # paragraphのtext中の:fromula:を全て置換する
         text = latex_block.text
         for formula in latex_block.inline_formulas:
-            text = text.replace(":formula:", formula, 1)
-        # textをLaTeX形式に変換
-        plt.text(0.5, 0.5, text, fontsize=12)
-        plt.axis("off")
-        plt.savefig(
-            os.path.join(os.path.dirname(__file__), "temp.png"), bbox_inches="tight"
+            print(f"formula: {formula}")
+            text = text.replace(":formula:", f"${formula}$", 1)
+        print(f"compiling {text} to LaTeX")
+        fig, ax = plt.subplots(
+            figsize=(
+                (latex_block.bbox[2] - latex_block.bbox[0]),
+                (latex_block.bbox[3] - latex_block.bbox[1]),
+            )
         )
+        ax.text(0, 0, text)
+        ax.axis("off")
+        plt.savefig(os.path.join(os.path.dirname(__file__), "temp.png"))
         plt.close()
         page = self.doc[latex_block.page_number - 1]
         bbox = convert_bbox_to_point(latex_block.bbox)
