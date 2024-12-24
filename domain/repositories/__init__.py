@@ -1,0 +1,2 @@
+from .i_ocr_repository import IOcrRepository
+from .i_generate_pdf_repository import IPDFGeneratorRepository

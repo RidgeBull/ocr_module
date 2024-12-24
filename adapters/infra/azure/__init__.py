@@ -1,0 +1,1 @@
+from .ocr_repository import AzureOcrRepository
