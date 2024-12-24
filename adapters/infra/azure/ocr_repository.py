@@ -4,7 +4,16 @@ from ocr.domain.repositories import IOcrRepository
 from typing import List, Tuple
 from logging import getLogger
 
-from azure.ai.documentintelligence.models import *
+from azure.ai.documentintelligence.models import (
+    DocumentPage,
+    DocumentParagraph,
+    DocumentStyle,
+    DocumentSpan,
+    DocumentFormula,
+    DocumentSection,
+    DocumentFigure,
+    DocumentTable,
+)
 
 
 @dataclass
@@ -166,7 +175,7 @@ class AzureOcrRepository(IOcrRepository):
             self.logger.info(f"Line: {line.text} with style: {style}")
             text_lines.append(line)
 
-        return text_lines
+        return text_lines, display_formulas
 
     @staticmethod
     def _analyze_paragraph(
@@ -182,18 +191,29 @@ class AzureOcrRepository(IOcrRepository):
             )
         paragraph_text_lines = _get_textlines_in_paragraph(paragraph, text_lines)
         paragraph_text = "".join([line.text for line in paragraph_text_lines])
-        paragraph = _TextParagraph(
+        text_paragraph = _TextParagraph(
             text=paragraph_text,
             inline_formulas=[
                 formula
                 for text_line in paragraph_text_lines
                 for formula in text_line.inline_formulas
             ],
-            lines=paragraph_text_lines,
+            lines=[
+                TextLine(
+                    text=line.text,
+                    inline_formulas=[formula.value for formula in line.inline_formulas],
+                    bbox=line.bbox,
+                    font=line.font,
+                    color_hex=line.color_hex,
+                    font_weight=line.font_weight,
+                    background_color_hex=line.background_color_hex,
+                )
+                for line in paragraph_text_lines
+            ],
             bbox=_get_bounding_box(paragraph.bounding_regions[0].polygon),
             page_number=paragraph.bounding_regions[0].page_number,
         )
-        return paragraph
+        return text_paragraph
 
     @staticmethod
     def _analyze_figure(figure: DocumentFigure) -> Figure:
@@ -290,19 +310,21 @@ class AzureOcrRepository(IOcrRepository):
             if element.startswith("/tables/")
         ]
 
-        paragraphs: List[_TextParagraph] = []
+        paragraphs: List[TextParagraph] = []
         for paragrapj_id in paragraph_ids:
             paragraph = self.paragraphs[int(paragrapj_id)]
             if not paragraph.bounding_regions:
                 continue
             page_number = paragraph.bounding_regions[0].page_number
-            page = self.pages[page_number]
+            page = self.pages[page_number - 1]
             text_lines, display_formulas = self._analyze_page(page)
             paragraph = self._analyze_paragraph(paragraph, text_lines)
             paragraphs.append(
                 TextParagraph(
                     text=paragraph.text,
-                    inline_formulas=paragraph.inline_formulas,
+                    inline_formulas=[
+                        formula.value for formula in paragraph.inline_formulas
+                    ],
                     lines=[
                         TextLine(
                             text=line.text,
@@ -360,7 +382,7 @@ class AzureOcrRepository(IOcrRepository):
             print(f"Analyzing section: {section}")
             try:
                 section = self._analyze_section(section)
+                sections.append(section)
             except Exception as e:
                 self.logger.error(f"Failed to analyze section: {section}", exc_info=True)
-            sections.append(section)
         return sections
