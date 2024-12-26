@@ -1,0 +1,1 @@
+from .pylatex_pdf_generate_repository import PyLaTeXGeneratePDFRepository

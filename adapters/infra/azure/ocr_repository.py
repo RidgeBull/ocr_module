@@ -1,7 +1,16 @@
 from .azure_client import AzureDocumentIntelligenceClient
-from ocr.domain.entities import *
+from ocr.domain.entities import (
+    Section,
+    DisplayFormula,
+    TextLine,
+    TextParagraph,
+    Figure,
+    Table,
+    Caption,
+    Cell,
+)
 from ocr.domain.repositories import IOcrRepository
-from typing import List, Tuple
+from typing import List, Tuple, Literal
 from logging import getLogger
 
 from azure.ai.documentintelligence.models import (
@@ -14,7 +23,7 @@ from azure.ai.documentintelligence.models import (
     DocumentFigure,
     DocumentTable,
 )
-
+from dataclasses import dataclass
 
 @dataclass
 class _TextLine:
@@ -104,6 +113,20 @@ class AzureOcrRepository(IOcrRepository):
         self._read_document(document_path)
         sections = self._get_sections()
         return sections
+    
+    def get_display_formulas(self) -> List[DisplayFormula]:
+        display_formulas: List[DisplayFormula] = []
+        for page in self.pages:
+            if not page.formulas:
+                continue
+            for formula in page.formulas:
+                if formula.kind == "display":
+                    display_formulas.append(DisplayFormula(
+                        latex_value=formula.value,
+                        bbox=_get_bounding_box(formula.polygon),
+                        page_number=page.page_number,
+                    ))
+        return display_formulas
 
     def get_page_number(self) -> int:
         return len(self.pages)

@@ -1,0 +1,1 @@
+from .fpdf2_generate_pdf_repository import FPDF2GeneratePDFRepository

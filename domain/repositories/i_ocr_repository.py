@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from ocr.domain.entities import Section
+from ocr.domain.entities import Section, DisplayFormula
 
 class IOcrRepository(ABC):
     @abstractmethod
@@ -9,4 +9,8 @@ class IOcrRepository(ABC):
 
     @abstractmethod
     def get_page_number(self) -> int:
+        pass
+
+    @abstractmethod
+    def get_display_formulas(self) -> List[DisplayFormula]:
         pass
