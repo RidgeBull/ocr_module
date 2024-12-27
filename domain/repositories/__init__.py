@@ -1,2 +1,3 @@
 from .i_ocr_repository import IOcrRepository
 from .i_generate_pdf_repository import IPDFGeneratorRepository
+from .i_image_extractor_repository import IImageExtractorRepository

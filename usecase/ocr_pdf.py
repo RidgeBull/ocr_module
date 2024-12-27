@@ -14,10 +14,17 @@ class OCRPDFUseCase:
 
     def execute(self, document_path: str, output_path: str):
         sections = self.ocr_repository.get_sections(document_path)
-        self.logger.info(f"Sections are extracted from {document_path} successfully {sections}")
+        self.logger.info(
+            f"Sections are extracted from {document_path} successfully {sections}"
+        )
         page_num = self.ocr_repository.get_page_number()
         display_formulas = self.ocr_repository.get_display_formulas()
-        self.logger.info(f"Display formulas are extracted from {document_path} successfully {display_formulas}")
-        self.pdf_repository.generate_pdf(sections, page_num, output_path, display_formulas)
+        page_size = self.ocr_repository.get_page_size()
+        self.logger.info(
+            f"Display formulas are extracted from {document_path} successfully {display_formulas}"
+        )
+        self.pdf_repository.generate_pdf(
+            sections, page_num, output_path, display_formulas, page_size
+        )
         self.logger.info(f"PDF file is generated at {output_path}")
         return output_path

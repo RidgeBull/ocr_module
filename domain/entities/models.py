@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Literal
 
+
 @dataclass
 class Section:
     """
@@ -15,10 +16,12 @@ class Section:
     :ivar figures: List of figures in the section.
     :vartype figures: List[Figure]
     """
-    paragraphs: List['TextParagraph']
-    formula_blocks: List['DisplayFormula']
-    tables: List['Table']
-    figures: List['Figure']
+
+    paragraphs: List["TextParagraph"]
+    formula_blocks: List["DisplayFormula"]
+    tables: List["Table"]
+    figures: List["Figure"]
+
 
 @dataclass
 class TextParagraph:
@@ -36,11 +39,13 @@ class TextParagraph:
     :ivar page_number: Page number where the paragraph is located.
     :vartype page_number: int
     """
+
     text: str  # :formula:がプレースホルダーとなっている状態
     inline_formulas: List[str]
-    lines: List['TextLine']
+    lines: List["TextLine"]
     bbox: tuple
     page_number: int
+
 
 @dataclass
 class TextLine:
@@ -62,13 +67,15 @@ class TextLine:
     :ivar background_color_hex: Background color of the text in hexadecimal format.
     :vartype background_color_hex: str
     """
+
     text: str
     inline_formulas: List[str]
     bbox: tuple
     font: str
     color_hex: str
-    font_weight: Literal['bold', 'normal']
+    font_weight: Literal["bold", "normal"]
     background_color_hex: str
+
 
 @dataclass
 class DisplayFormula:
@@ -82,9 +89,11 @@ class DisplayFormula:
     :ivar page_number: Page number where the formula is located.
     :vartype page_number: int
     """
+
     latex_value: str
     bbox: tuple
     page_number: int
+
 
 @dataclass
 class Table:
@@ -104,12 +113,14 @@ class Table:
     :ivar caption: Caption of the table.
     :vartype caption: Optional[Caption]
     """
+
     row_num: int
     col_num: int
-    cells: List['Cell']
+    cells: List["Cell"]
     bbox: tuple
     page_number: int
-    caption: Optional['Caption']
+    caption: Optional["Caption"]
+
 
 @dataclass
 class Cell:
@@ -125,10 +136,12 @@ class Cell:
     :ivar bbox: Bounding box of the cell.
     :vartype bbox: tuple
     """
+
     row_index: int
     column_index: int
     content: str
     bbox: tuple
+
 
 @dataclass
 class Figure:
@@ -141,10 +154,15 @@ class Figure:
     :vartype page_number: int
     :ivar caption: Caption of the figure.
     :vartype caption: Optional[Caption]
+    :ivar image_data: Binary image data extracted from PDF
+    :vartype image_data: Optional[bytes]
     """
+
     bbox: tuple
     page_number: int
-    caption: Optional['Caption']
+    caption: Optional["Caption"]
+    image_data: Optional[bytes] = None
+
 
 @dataclass
 class Caption:
@@ -156,5 +174,6 @@ class Caption:
     :ivar content: Content of the caption.
     :vartype content: str
     """
+
     bbox: tuple
     content: str
