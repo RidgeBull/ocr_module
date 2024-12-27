@@ -23,10 +23,12 @@ def _get_env_file() -> str:
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=_get_env_file(),
+        env_ignore_empty=False,
+        extra="ignore",
     )
     AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: str
     AZURE_DOCUMENT_INTELLIGENCE_KEY: str
-
+    OPENAI_API_KEY: str
 
 # Load the settings
 settings = Settings()

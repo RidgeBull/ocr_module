@@ -22,6 +22,26 @@ class Section:
     tables: List["Table"]
     figures: List["Figure"]
 
+@dataclass
+class SectionWithTranslation:
+    """
+    Section entity with translation
+
+    :ivar paragraphs: List of paragraphs in the section.
+    :vartype paragraphs: List[TextParagraphWithTranslation]
+    :ivar formula_blocks: List of display formulas in the section.
+    :vartype formula_blocks: List[DisplayFormula]
+    :ivar tables: List of tables in the section.
+    :vartype tables: List[Table]
+    :ivar figures: List of figures in the section.
+    :vartype figures: List[Figure]
+    """
+
+    paragraphs: List["TextParagraphWithTranslation"]
+    formula_blocks: List["DisplayFormula"]
+    tables: List["Table"]
+    figures: List["Figure"]
+
 
 @dataclass
 class TextParagraph:
@@ -41,6 +61,32 @@ class TextParagraph:
     """
 
     text: str  # :formula:がプレースホルダーとなっている状態
+    inline_formulas: List[str]
+    lines: List["TextLine"]
+    bbox: tuple
+    page_number: int
+
+@dataclass
+class TextParagraphWithTranslation:
+    """
+    TextParagraph entity with translation
+
+    :ivar text: The text content of the paragraph.
+    :vartype text: str
+    :ivar translation: The translation of the text.
+    :vartype translation: str
+    :ivar inline_formulas: List of inline formulas in the text.
+    :vartype inline_formulas: List[str]
+    :ivar lines: List of text lines in the paragraph.
+    :vartype lines: List[TextLine]
+    :ivar bbox: Bounding box of the paragraph.
+    :vartype bbox: tuple
+    :ivar page_number: Page number where the paragraph is located.
+    :vartype page_number: int
+    """
+
+    text: str
+    translation: str
     inline_formulas: List[str]
     lines: List["TextLine"]
     bbox: tuple
@@ -120,6 +166,7 @@ class Table:
     bbox: tuple
     page_number: int
     caption: Optional["Caption"]
+    image_data: Optional[bytes] = None
 
 
 @dataclass

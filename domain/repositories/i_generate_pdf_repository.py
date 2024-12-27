@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
-from ocr.domain.entities import Section, DisplayFormula
+from ocr.domain.entities import Section, DisplayFormula, SectionWithTranslation
 
 
 class IPDFGeneratorRepository(ABC):

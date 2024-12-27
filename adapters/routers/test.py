@@ -12,7 +12,8 @@ from ocr.adapters.infra.pymupdf import (
 from ocr.adapters.infra.azure import AzureOcrRepository
 from ocr.adapters.infra.fpdf2 import FPDF2GeneratePDFRepository
 from ocr.adapters.infra.pylatex import PyLaTeXGeneratePDFRepository
-from ocr.usecase.ocr_pdf import OCRPDFUseCase
+from ocr.adapters.infra.openai import OpenAITranslateSectionRepository
+from ocr.usecase import OCRPDFUseCase, TranslatePDFUseCase
 
 english_document_path = os.path.join(project_root, "pymupdf/output/output.pdf")
 english_document_output_path = os.path.join(
@@ -37,5 +38,17 @@ ocr_pdf_usecase = OCRPDFUseCase(
     ocr_repository=AzureOcrRepository(image_extractor=PyMuPDFImageExtractor()),
     pdf_repository=PyLaTeXGeneratePDFRepository(),
 )
-ocr_pdf_usecase.execute(document_path, document_output_path)
+
+translate_pdf_usecase = TranslatePDFUseCase(
+    translate_section_repository=OpenAITranslateSectionRepository(),
+    pdf_generator_repository=PyLaTeXGeneratePDFRepository(),
+    ocr_repository=AzureOcrRepository(image_extractor=PyMuPDFImageExtractor()),
+)
+
+translate_pdf_usecase.execute(
+    theory_document_path,
+    theory_document_output_path,
+    "en",
+    "ja",
+)
 # %%

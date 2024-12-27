@@ -9,7 +9,7 @@ from ocr.domain.entities import (
     Caption,
     Cell,
 )
-from ocr.domain.repositories import IOcrRepository
+from ocr.domain.repositories import IOcrRepository, IImageExtractorRepository
 from typing import List, Tuple, Literal
 from logging import getLogger
 
@@ -24,6 +24,8 @@ from azure.ai.documentintelligence.models import (
     DocumentTable,
 )
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 @dataclass
 class _TextLine:
@@ -104,16 +106,18 @@ def _get_textlines_in_paragraph(
 
 
 class AzureOcrRepository(IOcrRepository):
-    def __init__(self):
+    def __init__(self, image_extractor: IImageExtractorRepository):
         self.client = AzureDocumentIntelligenceClient()
         self.logger = getLogger(__name__)
+        self.image_extractor = image_extractor
 
     def get_sections(self, document_path: str) -> List[Section]:
         print(f"Reading document from path: {document_path}")
+        self.document_path = document_path
         self._read_document(document_path)
         sections = self._get_sections()
         return sections
-    
+
     def get_display_formulas(self) -> List[DisplayFormula]:
         display_formulas: List[DisplayFormula] = []
         for page in self.pages:
@@ -121,15 +125,23 @@ class AzureOcrRepository(IOcrRepository):
                 continue
             for formula in page.formulas:
                 if formula.kind == "display":
-                    display_formulas.append(DisplayFormula(
-                        latex_value=formula.value,
-                        bbox=_get_bounding_box(formula.polygon),
-                        page_number=page.page_number,
-                    ))
+                    display_formulas.append(
+                        DisplayFormula(
+                            latex_value=formula.value,
+                            bbox=_get_bounding_box(formula.polygon),
+                            page_number=page.page_number,
+                        )
+                    )
         return display_formulas
 
     def get_page_number(self) -> int:
         return len(self.pages)
+
+    def get_page_size(self) -> Tuple[float, float]:
+        pages = self.pages
+        if not pages:
+            return (0, 0)
+        return (pages[0].width, pages[0].height)
 
     def _read_document(self, document_path: str):
         self.result = self.client.analyze_document_from_document_path(document_path)
@@ -156,7 +168,9 @@ class AzureOcrRepository(IOcrRepository):
         self, document_page: DocumentPage
     ) -> Tuple[List[_TextLine], List[DocumentFormula]]:
         # ページ内のformulaを取得
-        formulas: List[DocumentFormula] = document_page.formulas if document_page.formulas else []
+        formulas: List[DocumentFormula] = (
+            document_page.formulas if document_page.formulas else []
+        )
 
         # inline formulaを取得
         inline_formulas: List[DocumentFormula] = [
@@ -238,8 +252,7 @@ class AzureOcrRepository(IOcrRepository):
         )
         return text_paragraph
 
-    @staticmethod
-    def _analyze_figure(figure: DocumentFigure) -> Figure:
+    def _analyze_figure(self, figure: DocumentFigure) -> Figure:
         if not figure.bounding_regions:
             return Figure(
                 bbox=(0, 0, 0, 0),
@@ -258,14 +271,19 @@ class AzureOcrRepository(IOcrRepository):
             bbox=_get_bounding_box(figure.caption.bounding_regions[0].polygon),
             content=figure.caption.content,
         )
-        return Figure(
+        figure_with_image = Figure(
             bbox=bbox,
             page_number=page_number,
             caption=caption,
+            image_data=self.image_extractor.extract_image(
+                self.document_path,
+                page_number,
+                bbox,
+            ),
         )
+        return figure_with_image
 
-    @staticmethod
-    def _analyze_table(table: DocumentTable) -> Table:
+    def _analyze_table(self, table: DocumentTable) -> Table:
         if not table.bounding_regions:
             return Table(
                 row_num=0,
@@ -286,6 +304,12 @@ class AzureOcrRepository(IOcrRepository):
             )
             for cell in table.cells
         ]
+        image_data = self.image_extractor.extract_image(
+            self.document_path,
+            page_number,
+            bbox,
+        )
+        print(f"Extracting image data for table: {bbox}")
         if not table.caption:
             return Table(
                 row_num=table.row_count,
@@ -294,6 +318,7 @@ class AzureOcrRepository(IOcrRepository):
                 bbox=bbox,
                 page_number=page_number,
                 caption=Caption(bbox=(0, 0, 0, 0), content=""),
+                image_data=image_data,
             )
         caption = Caption(
             bbox=_get_bounding_box(table.caption.bounding_regions[0].polygon),
@@ -306,6 +331,7 @@ class AzureOcrRepository(IOcrRepository):
             bbox=bbox,
             page_number=page_number,
             caption=caption,
+            image_data=image_data,
         )
 
     def _analyze_section(self, section: DocumentSection) -> Section:
@@ -374,6 +400,7 @@ class AzureOcrRepository(IOcrRepository):
                     bbox=figure.bbox,
                     page_number=figure.page_number,
                     caption=figure.caption,
+                    image_data=figure.image_data,
                 )
             )
 
@@ -389,6 +416,7 @@ class AzureOcrRepository(IOcrRepository):
                     bbox=table.bbox,
                     page_number=table.page_number,
                     caption=table.caption,
+                    image_data=table.image_data,
                 )
             )
 
@@ -401,11 +429,15 @@ class AzureOcrRepository(IOcrRepository):
 
     def _get_sections(self) -> List[Section]:
         sections: List[Section] = []
-        for section in self.sections:
-            print(f"Analyzing section: {section}")
-            try:
-                section = self._analyze_section(section)
-                sections.append(section)
-            except Exception as e:
-                self.logger.error(f"Failed to analyze section: {section}", exc_info=True)
+        with ThreadPoolExecutor() as executor:
+            future_to_section = {
+                executor.submit(self._analyze_section, section): section
+                for section in self.sections
+            }
+            for future in as_completed(future_to_section):
+                try:
+                    analyzed_section = future.result()  # 分析結果を取得
+                    sections.append(analyzed_section)
+                except Exception as e:
+                    self.logger.error(f"Failed to analyze section: {e}", exc_info=True)
         return sections

@@ -8,7 +8,6 @@ from azure.ai.documentintelligence.models import (
 from typing import List
 import time
 import os
-
 from ocr.config import settings
 
 
@@ -66,8 +65,7 @@ class AzureDocumentIntelligenceClient:
             time.sleep(5)
         if poller.status() == "failed":
             print("Failed!")
-            print(poller.details())
-            return None
+            raise Exception("Failed to analyze document")
         else:
             print("Done!")
             result: AnalyzeResult = poller.result()

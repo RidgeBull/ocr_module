@@ -1,0 +1,153 @@
+from ocr.config import settings
+from openai import OpenAI
+from typing import List, Dict, Any
+from logging import getLogger
+import time
+from ocr.domain.repositories.i_translate_section_repository import (
+    ITranslateSectionRepository,
+)
+from ocr.domain.entities import (
+    Section,
+    SectionWithTranslation,
+    TextParagraph,
+    TextParagraphWithTranslation,
+)
+
+
+class OpenAITranslateSectionRepository(ITranslateSectionRepository):
+    def __init__(
+        self,
+        client: OpenAI = OpenAI(api_key=settings.OPENAI_API_KEY),
+        model: str = "gpt-4o-2024-11-20",
+        retry_limit: int = 3,
+        retry_delay: int = 10,
+    ):
+        """
+        Initialize the OpenAITranslateSectionRepository
+
+        Args:
+            client (OpenAI, optional): _description_. Defaults to OpenAI(api_key=settings.OPENAI_API_KEY).
+            model (str, optional): _description_. Defaults to "gpt-4o-2024-11-20".
+            retry_limit (int, optional): _description_. Defaults to 3.
+            retry_delay (int, optional): _description_. Defaults to 10.
+        """
+        self.client = client
+        self.model = model
+        self.retry_limit = retry_limit
+        self.retry_delay = retry_delay
+        self.logger = getLogger(__name__)
+
+    @staticmethod
+    def build_batch_translate_request(
+        paragraphs: List[TextParagraph], source_language: str, target_language: str
+    ) -> List[dict[str, str]]:
+        """
+        Build a batch translate request for OpenAI API
+
+        Args:
+            paragraphs (List[TextParagraph]): List of paragraphs to translate
+            source_language (str): Source language
+            target_language (str): Target language
+
+        Returns:
+            List[dict[str, str]]: List of translate request
+        """
+        # combine paragraphs with sign
+        combined_text = "\n\n".join(
+            [
+                f"### Paragraph {index + 1} ###\n{paragraph.text}"
+                for index, paragraph in enumerate(paragraphs)
+            ]
+        )
+        # build translate request
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    f"You are only allowed to translate.\n"
+                    f"You are a great translator. Please translate the following text from {source_language} to {target_language}.\n"
+                    f"Each paragraph is prefixed with '### Paragraph n ###'. Please include the same prefixes in your translations to correspond each translation with the input text.\n"
+                    f"Do not translate the '### Paragraph n ###' prefixes and :formula: tags.\n"
+                    f"Do not add any other text or comments.\n"
+                ),
+            },
+            {
+                "role": "user",
+                "content": combined_text,
+            },
+        ]
+        return messages
+
+    @staticmethod
+    def parse_batch_translate_response(response: str) -> List[str]:
+        """
+        Parse the batch translate response from OpenAI API
+
+        Args:
+            response (str): Response from OpenAI API
+
+        Returns:
+            List[str]: List of translation
+        """
+        translations: List[str] = []
+        # split response by '### Text n ###'
+        parts = response.split("### Paragraph")
+        for part in parts[1:]:
+            text = part.split("###")[1].strip()
+            translations.append(text)
+        return translations
+
+    def _request_translate(self, messages: List[dict[str, str]]) -> Dict[str, Any]:
+        """
+        Request translate from OpenAI API
+        """
+        retry_count = 0
+        while retry_count < self.retry_limit:
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    max_tokens=4096,
+                    temperature=0.7,
+                    top_p=1.0,
+                )
+                translated_text = response.choices[0].message.content
+                print(translated_text)
+                return {
+                    "status": "success",
+                    "data": translated_text,
+                }
+            except Exception as e:
+                retry_count += 1
+                time.sleep(self.retry_delay)
+        raise Exception("Failed to translate")
+
+    def translate_section(
+        self, section: Section, source_language: str, target_language: str
+    ) -> SectionWithTranslation:
+        print(f"Start to translate section {section}")
+        messages = self.build_batch_translate_request(
+            section.paragraphs, source_language, target_language
+        )
+        response = self._request_translate(messages)
+        self.logger.info(f"Response from OpenAI API: {response}")
+        translations = self.parse_batch_translate_response(response["data"])
+        self.logger.info(f"Translations: {translations}")
+        text_paragraphs_with_translation: List[TextParagraphWithTranslation] = []
+        for translation, text_paragraph in zip(translations, section.paragraphs):
+            text_paragraphs_with_translation.append(
+                TextParagraphWithTranslation(
+                    text=text_paragraph.text,
+                    translation=translation,
+                    inline_formulas=text_paragraph.inline_formulas,
+                    lines=text_paragraph.lines,
+                    bbox=text_paragraph.bbox,
+                    page_number=text_paragraph.page_number,
+                )
+            )
+        return SectionWithTranslation(
+            paragraphs=text_paragraphs_with_translation,
+            formula_blocks=section.formula_blocks,
+            tables=section.tables,
+            figures=section.figures,
+        )
