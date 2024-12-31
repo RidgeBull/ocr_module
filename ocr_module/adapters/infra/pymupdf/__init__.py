@@ -1,0 +1,1 @@
+from .pymupdf_image_extractor import PyMuPDFImageExtractor

@@ -1,0 +1,117 @@
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from logging import getLogger
+from typing import List
+
+from PyPDF2 import PdfMerger
+
+from domain.entities import PageWithTranslation
+from domain.repositories import IPDFGeneratorRepository
+
+
+class GenerateTranslatedPDFWithFormulaIdUseCase:
+    def __init__(
+        self, pdf_generator_repository: IPDFGeneratorRepository, max_workers: int = 4
+    ):
+        self.pdf_generator_repository = pdf_generator_repository
+        self.max_workers = max_workers
+        self.logger = getLogger(__name__)
+
+    def _process_page(
+        self,
+        page_with_translation: PageWithTranslation,
+        output_path: str,
+    ) -> str:
+        """1ページを処理する
+
+        Args:
+            page_with_translation (PageWithTranslation): 翻訳されたページ
+            output_path (str): documentの出力パス. pageの出力パスは `{output_path.replace(".pdf", "")}_{page_number}.pdf` というパスになる
+
+        Returns:
+            str: pageの出力パス (.pdfを含む)
+        """
+        doc_prefix = output_path.replace(".pdf", "")
+        page_output_path = f"{doc_prefix}_{page_with_translation.page_number}.pdf"
+        try:
+            self.pdf_generator_repository.generate_pdf_with_formula_id(
+                page_with_translation, page_output_path
+            )
+            return page_output_path
+        except Exception as e:
+            self.logger.error(
+                f"Error processing page {page_with_translation.page_number}: {e}"
+            )
+            # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
+            raise
+
+    def _merge_pdfs(self, pdf_paths: List[str], output_path: str) -> str:
+        """PDFを結合する"""
+        merger = PdfMerger()
+        for pdf_path in sorted(
+            pdf_paths, key=lambda x: int(x.split("_")[-1].replace(".pdf", ""))
+        ):
+            merger.append(pdf_path)
+
+        final_path = f"{output_path}.pdf"
+        merger.write(final_path)
+        merger.close()
+
+        return final_path
+
+    def _remove_page_pdf(self, pdf_paths: List[str]) -> None:
+        # 一時ファイルを削除
+        for pdf_path in pdf_paths:
+            try:
+                os.remove(pdf_path)
+            except Exception as e:
+                self.logger.warning(f"Failed to remove temporary file {pdf_path}: {e}")
+
+    def execute(
+        self,
+        pages_with_translations: List[PageWithTranslation],
+        output_path: str,
+        save_page_file: bool = False,
+    ) -> str:
+        """
+        ページごとに翻訳を行い、PDFを生成する
+
+        Args:
+            pages_with_translations (List[PageWithTranslation]): 翻訳されたページのリスト
+            output_path (str): 出力パス.
+            save_page_file (bool, optional): ページごとのPDFを保存するかどうか. デフォルトはFalse.
+              ページごとのPDFは `{output_path}_{page_number}.pdf` というパスに保存される
+
+        Returns:
+            str: 結合されたPDFのパス
+        """
+        pdf_paths = []
+
+        # 並列処理でページを処理
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_page = {
+                executor.submit(self._process_page, page, output_path): page
+                for page in pages_with_translations
+            }
+
+            for future in as_completed(future_to_page):
+                page = future_to_page[future]
+                try:
+                    pdf_path = future.result()
+                    pdf_paths.append(pdf_path)
+                    self.logger.info(f"Completed processing page {page.page_number}")
+                except Exception as e:
+                    self.logger.error(f"Failed to process page {page.page_number}: {e}")
+
+        # すべてのPDFを結合
+        if not pdf_paths:
+            raise Exception("No pages were successfully processed")
+
+        final_path = self._merge_pdfs(pdf_paths, output_path)
+        self.logger.info(f"Successfully created merged PDF at {final_path}")
+
+        # 中間ファイルを保存しない場合、ページごとのPDFを削除
+        if not save_page_file:
+            self._remove_page_pdf(pdf_paths)
+
+        return final_path

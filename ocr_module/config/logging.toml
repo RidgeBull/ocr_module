@@ -1,0 +1,24 @@
+[logger]
+version = 1
+disable_existing_loggers = false
+
+[logger.formatters.simple]
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"
+
+[logger.handlers.console]
+class = "logging.StreamHandler"
+level = "DEBUG"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[logger.handlers.file]
+class = "logging.FileHandler"
+level = "DEBUG"
+formatter = "simple"
+filename = "logs/ocr.log"
+encoding = "utf-8"
+
+[logger.root]
+level = "DEBUG"
+handlers = ["console", "file"] 
