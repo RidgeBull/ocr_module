@@ -10,14 +10,12 @@ from azure.ai.documentintelligence.models import (
 )
 from azure.core.credentials import AzureKeyCredential
 
-from config import settings
-
 
 class AzureDocumentIntelligenceClient:
     def __init__(
         self,
-        endpoint: str = settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT,
-        key: str = settings.AZURE_DOCUMENT_INTELLIGENCE_KEY,
+        endpoint: str = os.environ["AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"],
+        key: str = os.environ["AZURE_DOCUMENT_INTELLIGENCE_KEY"],
     ):
         """
         Azure Document Intelligence クライアントの初期化

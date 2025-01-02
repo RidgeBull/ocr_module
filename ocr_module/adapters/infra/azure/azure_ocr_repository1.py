@@ -11,7 +11,6 @@ from azure.ai.documentintelligence.models import (
     DocumentSection,
     DocumentTable,
 )
-
 from domain.entities import (
     DisplayFormula,
     Document,

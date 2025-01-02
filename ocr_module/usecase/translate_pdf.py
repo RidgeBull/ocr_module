@@ -3,10 +3,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging import getLogger
 from typing import List
 
-from PyPDF2 import PdfMerger
-
 from domain.entities import PageWithTranslation
 from domain.repositories import IPDFGeneratorRepository
+from PyPDF2 import PdfMerger
 
 
 class GenerateTranslatedPDFWithFormulaIdUseCase:
@@ -72,7 +71,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         pages_with_translations: List[PageWithTranslation],
         output_path: str,
         save_page_file: bool = False,
-    ) -> str:
+    ) -> tuple[str, list[str]]:
         """
         ページごとに翻訳を行い、PDFを生成する
 
@@ -83,9 +82,9 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
               ページごとのPDFは `{output_path}_{page_number}.pdf` というパスに保存される
 
         Returns:
-            str: 結合されたPDFのパス
+            tuple[str, list[str]]: 結合されたPDFのパス, ページごとのPDFのパスのリスト
         """
-        pdf_paths = []
+        page_pdf_paths = []
 
         # 並列処理でページを処理
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -97,21 +96,21 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
             for future in as_completed(future_to_page):
                 page = future_to_page[future]
                 try:
-                    pdf_path = future.result()
-                    pdf_paths.append(pdf_path)
+                    page_pdf_path = future.result()
+                    page_pdf_paths.append(page_pdf_path)
                     self.logger.info(f"Completed processing page {page.page_number}")
                 except Exception as e:
                     self.logger.error(f"Failed to process page {page.page_number}: {e}")
 
         # すべてのPDFを結合
-        if not pdf_paths:
+        if not page_pdf_paths:
             raise Exception("No pages were successfully processed")
 
-        final_path = self._merge_pdfs(pdf_paths, output_path)
+        final_path = self._merge_pdfs(page_pdf_paths, output_path)
         self.logger.info(f"Successfully created merged PDF at {final_path}")
 
         # 中間ファイルを保存しない場合、ページごとのPDFを削除
         if not save_page_file:
-            self._remove_page_pdf(pdf_paths)
+            self._remove_page_pdf(page_pdf_paths)
 
-        return final_path
+        return final_path, page_pdf_paths

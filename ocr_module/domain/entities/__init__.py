@@ -28,3 +28,18 @@ class Document:
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
+
+
+@dataclass
+class TranslatedDocument:
+    pages: List[PageWithTranslation]
+    sections: List[SectionWithTranslation]
+
+    def to_dict(self) -> str:
+        return dict(
+            pages=[page.to_dict() for page in self.pages],
+            sections=[section.to_dict() for section in self.sections],
+        )
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
