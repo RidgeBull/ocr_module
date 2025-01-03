@@ -66,9 +66,11 @@ class DisplayFormula:
 
     @classmethod
     def from_dict(cls, data: dict) -> "DisplayFormula":
-        return cls(**data)
+        # image_dataのkeyはdataに存在しないことに注意してクラスを生成する
+        return cls(**{k: v for k, v in data.items() if k != "image_data"})
 
 
+@dataclass
 @dataclass
 class Paragraph:
     """
@@ -108,7 +110,7 @@ class Paragraph:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Paragraph":
-        return cls(**data)
+        return cls(**{k: v for k, v in data.items() if k != "image_data"})
 
 
 @dataclass
@@ -182,7 +184,7 @@ class Figure:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Figure":
-        return cls(**data)
+        return cls(**{k: v for k, v in data.items() if k != "image_data"})
 
 
 @dataclass
@@ -212,7 +214,7 @@ class Table:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Table":
-        return cls(**data)
+        return cls(**{k: v for k, v in data.items() if k != "image_data"})
 
 
 @dataclass
