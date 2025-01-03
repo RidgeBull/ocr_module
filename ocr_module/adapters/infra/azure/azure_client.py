@@ -79,10 +79,6 @@ class AzureDocumentIntelligenceClient:
             print("Done!")
             result: AnalyzeResult = poller.result()
             print("Result is ready!")
-            with open(
-                os.path.join(os.path.dirname(document_path), "result.json"), "w"
-            ) as f:
-                f.write(result.__str__())
             return result
 
     def analyze_document_from_url(self, document_url: str) -> AnalyzeResult:

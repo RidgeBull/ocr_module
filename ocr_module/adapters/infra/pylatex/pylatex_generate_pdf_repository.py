@@ -38,8 +38,8 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # すでに設定されているハンドラを削除して、新しいハンドラを設定してファイルに出力する
         for handler in self.paragraph_logger.handlers:
             self.paragraph_logger.removeHandler(handler)
-        # modeを'w'に設定して上書きモードにする
-        handler = logging.FileHandler("paragraph.log", mode="w")
+        # # modeを'w'に設定して上書きモードにする
+        # handler = logging.FileHandler("paragraph.log", mode="w")
         handler.setFormatter(
             logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         )

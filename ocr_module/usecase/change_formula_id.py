@@ -15,8 +15,8 @@ class ChangeFormulaIdUseCase:
             self.logger.removeHandler(handler)
         # 新しいハンドラを追加
         self.logger.addHandler(logging.StreamHandler())
-        # ファイルにログを出力
-        self.logger.addHandler(logging.FileHandler("change_formula_id.log", mode="w"))
+        # # ファイルにログを出力
+        # self.logger.addHandler(logging.FileHandler("change_formula_id.log", mode="w"))
         self.logger.setLevel(logging.INFO)
 
     def execute(self, pages: List[Page], sections: List[Section]) -> List[Section]:
