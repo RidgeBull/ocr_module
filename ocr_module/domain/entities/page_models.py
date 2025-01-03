@@ -66,8 +66,14 @@ class DisplayFormula:
 
     @classmethod
     def from_dict(cls, data: dict) -> "DisplayFormula":
-        # image_dataのkeyはdataに存在しないことに注意してクラスを生成する
-        return cls(**{k: v for k, v in data.items() if k != "image_data"})
+        return cls(
+            formula_id=data["formula_id"],
+            latex_value=data["latex_value"],
+            bbox=data["bbox"],
+            type=data["type"],
+            page_number=data["page_number"],
+            image_data=None,  # dictからの復元時はimage_dataはNoneとする
+        )
 
 
 @dataclass
@@ -184,7 +190,13 @@ class Figure:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Figure":
-        return cls(**{k: v for k, v in data.items() if k != "image_data"})
+        # image_dataがない場合はNoneを設定
+        return cls(
+            figure_id=data["figure_id"],
+            bbox=data["bbox"],
+            page_number=data["page_number"],
+            image_data=None,  # dictからの復元時はimage_dataはNoneとする
+        )
 
 
 @dataclass
@@ -214,7 +226,12 @@ class Table:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Table":
-        return cls(**{k: v for k, v in data.items() if k != "image_data"})
+        return cls(
+            table_id=data["table_id"],
+            bbox=data["bbox"],
+            page_number=data["page_number"],
+            image_data=None,  # dictからの復元時はimage_dataはNoneとする
+        )
 
 
 @dataclass
