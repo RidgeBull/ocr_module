@@ -44,15 +44,27 @@ class AzureDocumentIntelligenceClient:
             features=features,
         )
 
-    def analyze_document_from_document_path(self, document_path: str) -> AnalyzeResult:
+    def analyze_document_from_document_path(
+        self,
+        document_path: str,
+        save_json: bool = False,
+    ) -> AnalyzeResult:
         """
         ドキュメントを分析
 
         Args:
             document_path (str): 分析するドキュメントのパス
+            save_json (bool, optional): 結果をJSONファイルに保存するかどうか. Defaults to False.
+              document_pathと同じディレクトリに`result.json`として保存される
         """
         document_bytes = open(document_path, "rb").read()
-        return self.analyze_document_from_bytes(document_bytes)
+        result = self.analyze_document_from_bytes(document_bytes)
+        if save_json:
+            with open(
+                os.path.join(os.path.dirname(document_path), "result.json"), "w"
+            ) as f:
+                f.write(result.__str__())
+        return result
 
     def analyze_document_from_bytes(self, document_bytes: bytes) -> AnalyzeResult:
         """
@@ -79,10 +91,6 @@ class AzureDocumentIntelligenceClient:
             print("Done!")
             result: AnalyzeResult = poller.result()
             print("Result is ready!")
-            with open(
-                os.path.join(os.path.dirname(document_path), "result.json"), "w"
-            ) as f:
-                f.write(result.__str__())
             return result
 
     def analyze_document_from_url(self, document_url: str) -> AnalyzeResult:
