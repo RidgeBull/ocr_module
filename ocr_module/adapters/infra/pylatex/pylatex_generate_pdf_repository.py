@@ -518,7 +518,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         height = bbox[3] - bbox[1]
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\tcboxfit[height={height}in,width={width}in]{{{paragraph.content}}}"
                 mp.append(NoEscape(content))
@@ -557,7 +561,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
                 mp.append(NoEscape(content))
@@ -583,7 +591,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 # 太字で挿入する
                 content = rf"\textbf{{{section_heading_paragraph.content}}}"
@@ -610,7 +622,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="b",
+                )
             ) as mp:
                 mp.append(NoEscape(footnote_paragraph.content))
         return document
@@ -637,7 +653,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # ヘッダーの中央に配置
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 mp.append(NoEscape(content))
         return document
@@ -657,7 +677,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # フッターの中央に配置
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="b",
+                )
             ) as mp:
                 mp.append(NoEscape(content))
         return document
@@ -692,7 +716,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
                 mp.append(NoEscape(content))
@@ -728,7 +756,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
                 mp.append(NoEscape(content))
