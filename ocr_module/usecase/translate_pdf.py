@@ -2,6 +2,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging import getLogger
 from typing import List
+import copy
 
 from ocr_module.domain.entities import PageWithTranslation
 from ocr_module.domain.repositories import IPDFGeneratorRepository
@@ -33,8 +34,9 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         doc_prefix = output_path.replace(".pdf", "")
         page_output_path = f"{doc_prefix}_{page_with_translation.page_number}.pdf"
         try:
+            page_copy = copy.deepcopy(page_with_translation)
             self.pdf_generator_repository.generate_pdf_with_formula_id(
-                page=page_with_translation, output_path=page_output_path
+                page=page_copy, output_path=page_output_path
             )
             return page_output_path
         except Exception as e:
