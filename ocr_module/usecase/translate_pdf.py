@@ -34,7 +34,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         page_output_path = f"{doc_prefix}_{page_with_translation.page_number}.pdf"
         try:
             self.pdf_generator_repository.generate_pdf_with_formula_id(
-                page_with_translation, page_output_path
+                page=page_with_translation, output_path=page_output_path
             )
             return page_output_path
         except Exception as e:
@@ -52,7 +52,12 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         ):
             merger.append(pdf_path)
 
-        final_path = f"{output_path}.pdf"
+        if ".pdf" in output_path:
+            output_basename = output_path.replace(".pdf", "")
+        else:
+            output_basename = output_path
+
+        final_path = f"{output_basename}.pdf"
         merger.write(final_path)
         merger.close()
 
