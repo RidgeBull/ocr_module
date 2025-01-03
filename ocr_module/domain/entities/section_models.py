@@ -38,6 +38,18 @@ class Section:
             figure_ids=self.figure_ids,
         )
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Section":
+        return cls(
+            section_id=data["section_id"],
+            paragraphs=[Paragraph.from_dict(p) for p in data["paragraphs"]],
+            paragraph_ids=data["paragraph_ids"],
+            tables=[Table.from_dict(t) for t in data["tables"]],
+            table_ids=data["table_ids"],
+            figures=[Figure.from_dict(f) for f in data["figures"]],
+            figure_ids=data["figure_ids"],
+        )
+
 
 @dataclass
 class SectionWithTranslation:
@@ -71,4 +83,16 @@ class SectionWithTranslation:
             table_ids=self.table_ids,
             figures=[figure.to_dict() for figure in self.figures],
             figure_ids=self.figure_ids,
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "SectionWithTranslation":
+        return cls(
+            section_id=data["section_id"],
+            paragraphs=[ParagraphWithTranslation.from_dict(p) for p in data["paragraphs"]],
+            paragraph_ids=data["paragraph_ids"],
+            tables=[Table.from_dict(t) for t in data["tables"]],
+            table_ids=data["table_ids"],
+            figures=[Figure.from_dict(f) for f in data["figures"]],
+            figure_ids=data["figure_ids"],
         )

@@ -28,6 +28,10 @@ class Formula:
     def to_dict(self) -> dict:
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Formula":
+        return cls(**data)
+
 
 @dataclass
 class DisplayFormula:
@@ -59,6 +63,10 @@ class DisplayFormula:
         d = asdict(self)
         d.pop("image_data")
         return d
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "DisplayFormula":
+        return cls(**data)
 
 
 @dataclass
@@ -97,6 +105,10 @@ class Paragraph:
             page_number=self.page_number,
             translation=self.content,
         )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Paragraph":
+        return cls(**data)
 
 
 @dataclass
@@ -138,6 +150,10 @@ class ParagraphWithTranslation:
         d = asdict(self)
         return d
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "ParagraphWithTranslation":
+        return cls(**data)
+
 
 @dataclass
 class Figure:
@@ -164,6 +180,10 @@ class Figure:
         d.pop("image_data")
         return d
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Figure":
+        return cls(**data)
+
 
 @dataclass
 class Table:
@@ -189,6 +209,10 @@ class Table:
         d = asdict(self)
         d.pop("image_data")
         return d
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Table":
+        return cls(**data)
 
 
 @dataclass
@@ -252,6 +276,21 @@ class Page:
             tables=self.tables,
         )
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Page":
+        return cls(
+            page_number=data["page_number"],
+            width=data["width"],
+            height=data["height"],
+            formulas=[Formula.from_dict(f) for f in data["formulas"]],
+            display_formulas=[
+                DisplayFormula.from_dict(df) for df in data["display_formulas"]
+            ],
+            paragraphs=[Paragraph.from_dict(p) for p in data["paragraphs"]],
+            figures=[Figure.from_dict(f) for f in data["figures"]],
+            tables=[Table.from_dict(t) for t in data["tables"]],
+        )
+
 
 @dataclass
 class PageWithTranslation:
@@ -297,4 +336,21 @@ class PageWithTranslation:
             ],
             figures=[figure.to_dict() for figure in self.figures],
             tables=[table.to_dict() for table in self.tables],
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PageWithTranslation":
+        return cls(
+            page_number=data["page_number"],
+            width=data["width"],
+            height=data["height"],
+            paragraphs=[
+                ParagraphWithTranslation.from_dict(p) for p in data["paragraphs"]
+            ],
+            formulas=[Formula.from_dict(f) for f in data["formulas"]],
+            display_formulas=[
+                DisplayFormula.from_dict(df) for df in data["display_formulas"]
+            ],
+            figures=[Figure.from_dict(f) for f in data["figures"]],
+            tables=[Table.from_dict(t) for t in data["tables"]],
         )
