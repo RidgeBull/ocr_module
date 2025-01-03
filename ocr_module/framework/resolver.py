@@ -2,7 +2,7 @@ from ..adapters.infra.azure import AzureOCRRepository
 from ..adapters.infra.openai import OpenAITranslateSectionRepository
 from ..adapters.infra.pylatex import PyLaTeXGeneratePDFRepository
 from ..adapters.infra.pymupdf import PyMuPDFImageExtractor
-from ..domain.entities import Document, TranslatedDocument
+from ..domain.entities import Document, TranslatedDocument, PageWithTranslation
 from ..usecase import (
     ChangeFormulaIdUseCase,
     GenerateTranslatedPDFWithFormulaIdUseCase,
@@ -88,6 +88,7 @@ class GeneratePDFClient:
                 pdf_generator_repository=PyLaTeXGeneratePDFRepository(),
             )
         )
+        self._pdf_generator_repository = PyLaTeXGeneratePDFRepository()
 
     def generate_pdf_from_document(
         self,
@@ -112,3 +113,20 @@ class GeneratePDFClient:
         )
 
         return doc_path, page_paths
+
+    def generate_pdf_from_page_with_translation(
+        self, page_with_translation: PageWithTranslation, output_path: str
+    ) -> str:
+        """翻訳済みのページをPDFに変換する
+
+        Args:
+            page_with_translation (PageWithTranslation): 翻訳済みのページ
+            output_path (str): 出力先のパス
+
+        Returns:
+            str: 出力先のパス
+        """
+        self._pdf_generator_repository.generate_pdf_with_formula_id(
+            page_with_translation, output_path
+        )
+        return output_path
