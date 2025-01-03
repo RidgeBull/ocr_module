@@ -5,13 +5,13 @@ from typing import Any, Dict, List
 from openai import OpenAI
 
 from config import settings
-from domain.entities import (
+from ocr_module.domain.entities import (
     Paragraph,
     ParagraphWithTranslation,
     Section,
     SectionWithTranslation,
 )
-from domain.repositories.i_translate_section_repository import (
+from ocr_module.domain.repositories.i_translate_section_repository import (
     ITranslateSectionRepository,
 )
 

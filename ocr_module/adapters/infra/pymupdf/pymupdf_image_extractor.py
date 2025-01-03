@@ -3,8 +3,8 @@ from typing import Optional, Tuple
 
 import pymupdf
 
-from domain.entities import Figure
-from domain.repositories import IImageExtractorRepository
+from ocr_module.domain.entities import Figure
+from ocr_module.domain.repositories import IImageExtractorRepository
 
 
 class PyMuPDFImageExtractor(IImageExtractorRepository):

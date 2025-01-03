@@ -12,8 +12,8 @@ from matplotlib.figure import Figure
 from PIL import Image
 from pypdf import PdfReader
 
-from domain.entities import Section, Table, TextParagraph  # noqa: F401
-from domain.repositories import IPDFGeneratorRepository  # noqa: F401
+from ocr_module.domain.entities import Section, Table, TextParagraph  # noqa: F401
+from ocr_module.domain.repositories import IPDFGeneratorRepository  # noqa: F401
 
 
 def convert_bbox_to_point(

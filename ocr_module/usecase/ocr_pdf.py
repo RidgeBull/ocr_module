@@ -7,8 +7,8 @@ from typing import List
 
 from PyPDF2 import PdfMerger
 
-from domain.entities import Page
-from domain.repositories import IOCRRepository, IPDFGeneratorRepository
+from ocr_module.domain.entities import Page
+from ocr_module.domain.repositories import IOCRRepository, IPDFGeneratorRepository
 
 
 class OCRPDFUseCase:

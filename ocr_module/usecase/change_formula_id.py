@@ -2,7 +2,7 @@ import logging
 from logging import getLogger
 from typing import Dict, List
 
-from domain.entities import Page, Paragraph, Section
+from ocr_module.domain.entities import Page, Paragraph, Section
 
 
 class ChangeFormulaIdUseCase:

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from domain.entities import Document, Page, Section
+from ocr_module.domain.entities import Document, Page, Section
 
 
 class IOCRRepository(ABC):

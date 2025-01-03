@@ -8,7 +8,7 @@ from pylatex import Command, Document, MiniPage, TextBlock
 from pylatex.package import Package
 from pylatex.utils import NoEscape, escape_latex
 
-from domain.entities import (
+from ocr_module.domain.entities import (
     DisplayFormula,
     Figure,
     Section,
@@ -17,7 +17,7 @@ from domain.entities import (
     TextParagraph,
     TextParagraphWithTranslation,
 )
-from domain.repositories import IPDFGeneratorRepository
+from ocr_module.domain.repositories import IPDFGeneratorRepository
 
 
 class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):

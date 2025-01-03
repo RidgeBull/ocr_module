@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from domain.entities import Section, SectionWithTranslation
+from ocr_module.domain.entities import Section, SectionWithTranslation
 
 
 class ITranslateSectionRepository(ABC):

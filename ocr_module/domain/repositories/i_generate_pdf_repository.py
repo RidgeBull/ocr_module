@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
-from domain.entities import Page, PageWithTranslation
+from ocr_module.domain.entities import Page, PageWithTranslation
 
 
 class IPDFGeneratorRepository(ABC):

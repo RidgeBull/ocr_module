@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging import getLogger
 from typing import List
 
-from domain.entities import PageWithTranslation
-from domain.repositories import IPDFGeneratorRepository
+from ocr_module.domain.entities import PageWithTranslation
+from ocr_module.domain.repositories import IPDFGeneratorRepository
 from PyPDF2 import PdfMerger
 
 

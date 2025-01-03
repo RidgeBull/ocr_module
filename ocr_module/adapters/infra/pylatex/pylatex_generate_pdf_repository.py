@@ -17,7 +17,7 @@ from pylatex import (
 from pylatex.package import Package
 from pylatex.utils import NoEscape, escape_latex
 
-from domain.entities import (
+from ocr_module.domain.entities import (
     DisplayFormula,
     Figure,
     Formula,
@@ -27,7 +27,7 @@ from domain.entities import (
     ParagraphWithTranslation,
     Table,
 )
-from domain.repositories import IPDFGeneratorRepository
+from ocr_module.domain.repositories import IPDFGeneratorRepository
 
 
 class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):

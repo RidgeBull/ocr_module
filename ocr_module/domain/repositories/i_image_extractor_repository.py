@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from domain.entities import Figure
+from ocr_module.domain.entities import Figure
 
 
 class IImageExtractorRepository(ABC):

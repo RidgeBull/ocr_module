@@ -1,8 +1,8 @@
 from logging import getLogger
 from typing import List
 
-from domain.entities import Section
-from domain.repositories import IOCRRepository
+from ocr_module.domain.entities import Section
+from ocr_module.domain.repositories import IOCRRepository
 
 
 class GetSectionUseCase:

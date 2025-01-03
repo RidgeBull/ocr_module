@@ -16,7 +16,7 @@ from azure.ai.documentintelligence.models import (
     DocumentTable,
 )
 
-from domain.entities import (
+from ocr_module.domain.entities import (
     Caption,
     Cell,
     DisplayFormula,
@@ -26,7 +26,7 @@ from domain.entities import (
     TextLine,
     TextParagraph,
 )
-from domain.repositories import IImageExtractorRepository, IOcrRepository
+from ocr_module.domain.repositories import IImageExtractorRepository, IOcrRepository
 from utils.logger import setup_function_logger
 
 from .azure_client import AzureDocumentIntelligenceClient

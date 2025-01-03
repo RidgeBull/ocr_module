@@ -5,8 +5,8 @@ from typing import List
 
 from PyPDF2 import PdfMerger
 
-from domain.entities import PageWithTranslation
-from domain.repositories import IPDFGeneratorRepository
+from ocr_module.domain.entities import PageWithTranslation
+from ocr_module.domain.repositories import IPDFGeneratorRepository
 
 
 class GenerateTranslatedPdfUseCase:

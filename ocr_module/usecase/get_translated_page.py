@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Dict, List
 
-from domain.entities import (
+from ocr_module.domain.entities import (
     Page,
     PageWithTranslation,
     ParagraphWithTranslation,

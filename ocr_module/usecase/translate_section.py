@@ -2,8 +2,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging import getLogger
 from typing import List
 
-from domain.entities import Section, SectionWithTranslation
-from domain.repositories import ITranslateSectionRepository
+from ocr_module.domain.entities import Section, SectionWithTranslation
+from ocr_module.domain.repositories import ITranslateSectionRepository
 
 
 class TranslateSectionUseCase:
