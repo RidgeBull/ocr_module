@@ -11,13 +11,13 @@ class ChangeFormulaIdUseCase:
     def __init__(self):
         self.logger = getLogger(__name__)
         # 既存のハンドラを削除
-        for handler in self.logger.handlers:
-            self.logger.removeHandler(handler)
+        # for handler in self.logger.handlers:
+        #     self.logger.removeHandler(handler)
         # 新しいハンドラを追加
-        self.logger.addHandler(logging.StreamHandler())
+        # self.logger.addHandler(logging.StreamHandler())
         # # ファイルにログを出力
         # self.logger.addHandler(logging.FileHandler("change_formula_id.log", mode="w"))
-        self.logger.setLevel(logging.INFO)
+        # self.logger.setLevel(logging.INFO)
 
     def execute(self, pages: List[Page], sections: List[Section]) -> List[Section]:
         processed_pages: List[Page] = []
