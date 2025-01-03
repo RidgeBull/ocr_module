@@ -3,16 +3,29 @@ from dataclasses import dataclass
 from typing import List
 
 from .page_models import (
-    DisplayFormula,
-    Figure,
     Formula,
-    Page,
-    PageWithTranslation,
+    DisplayFormula,
     Paragraph,
     ParagraphWithTranslation,
+    Figure,
     Table,
+    Page,
+    PageWithTranslation,
 )
 from .section_models import Section, SectionWithTranslation
+
+__all__ = [
+    "Formula",
+    "DisplayFormula",
+    "Paragraph",
+    "ParagraphWithTranslation",
+    "Figure",
+    "Table",
+    "Page",
+    "PageWithTranslation",
+    "Section",
+    "SectionWithTranslation",
+]
 
 
 @dataclass
