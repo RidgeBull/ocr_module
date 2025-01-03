@@ -1,10 +1,10 @@
+import os
 import time
 from logging import getLogger
 from typing import Any, Dict, List
 
 from openai import OpenAI
 
-from ocr_module.config import settings
 from ocr_module.domain.entities import (
     Paragraph,
     ParagraphWithTranslation,
@@ -19,7 +19,7 @@ from ocr_module.domain.repositories.i_translate_section_repository import (
 class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
-        client: OpenAI = OpenAI(api_key=settings.OPENAI_API_KEY),
+        client: OpenAI = OpenAI(api_key=os.environ["OPENAI_API_KEY"]),
         model: str = "gpt-4o-2024-11-20",
         retry_limit: int = 3,
         retry_delay: int = 10,
