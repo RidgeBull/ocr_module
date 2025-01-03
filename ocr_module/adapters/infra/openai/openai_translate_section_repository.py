@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from openai import OpenAI
 
-from config import settings
+from ocr_module.config import settings
 from ocr_module.domain.entities import (
     Paragraph,
     ParagraphWithTranslation,
