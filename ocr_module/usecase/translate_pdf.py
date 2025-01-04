@@ -14,7 +14,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         self,
         pdf_generator_repository: IPDFGeneratorRepository,
         error_pdf_generator_repository: IPDFGeneratorRepository,
-        max_workers: int = 4,
+        max_workers: int = 10,
     ):
         self.pdf_generator_repository = pdf_generator_repository
         self.error_pdf_generator_repository = error_pdf_generator_repository
@@ -49,17 +49,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
                 f"Generating error PDF"
             )
             # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
-            try:
-                self.error_pdf_generator_repository.generate_pdf_with_translation(
-                    page=page_with_translation, output_path=page_output_path
-                )
-            except Exception as e:
-                self.logger.warning(
-                    f"Error generating error PDF: {e}"
-                    f"Skipping error PDF generation"
-                )
-            self.logger.info(f"Generated error PDF at {page_output_path}")
-            return page_output_path
+            raise e
 
     def _merge_pdfs(self, pdf_paths: List[str], output_path: str) -> str:
         """PDFを結合する"""
@@ -122,8 +112,14 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
                     page_pdf_paths.append(page_pdf_path)
                     self.logger.info(f"Completed processing page {page.page_number}")
                 except Exception as e:
-                    self.logger.error(f"Failed to process page {page.page_number}: {e}")
-
+                    self.logger.warning(
+                        f"Failed to process page {page.page_number}: {e}"
+                    )
+                    page_output_path = f"{output_path.replace('.pdf', '')}_{page.page_number}_error.pdf"
+                    self.error_pdf_generator_repository.generate_pdf_with_translation(
+                        page=page, output_path=page_output_path
+                    )
+                    page_pdf_paths.append(page_output_path)
         # すべてのPDFを結合
         if not page_pdf_paths:
             raise Exception("No pages were successfully processed")
