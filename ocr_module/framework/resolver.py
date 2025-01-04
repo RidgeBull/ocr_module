@@ -2,7 +2,7 @@ from ..adapters.infra.azure import AzureOCRRepository, AzureOpenAITranslateSecti
 from ..adapters.infra.deepl import DeepLTranslateSectionRepository
 from ..adapters.infra.openai import OpenAITranslateSectionRepository
 from ..adapters.infra.pylatex import PyLaTeXGeneratePDFRepository
-from ..adapters.infra.pymupdf import PyMuPDFImageExtractor
+from ..adapters.infra.pymupdf import PyMuPDFImageExtractor, PyMuPDFGeneratePDFRepository
 from ..domain.entities import Document, TranslatedDocument, PageWithTranslation
 from ..usecase import (
     ChangeFormulaIdUseCase,
@@ -168,10 +168,10 @@ class GeneratePDFClient:
         self._generate_translated_pdf_usecase = (
             GenerateTranslatedPDFWithFormulaIdUseCase(
                 pdf_generator_repository=PyLaTeXGeneratePDFRepository(),
+                error_pdf_generator_repository=PyMuPDFGeneratePDFRepository(),
             )
         )
         self._pdf_generator_repository = PyLaTeXGeneratePDFRepository()
-
     def generate_pdf_from_document(
         self,
         document: TranslatedDocument,

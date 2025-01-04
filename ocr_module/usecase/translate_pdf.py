@@ -11,9 +11,13 @@ from PyPDF2 import PdfMerger
 
 class GenerateTranslatedPDFWithFormulaIdUseCase:
     def __init__(
-        self, pdf_generator_repository: IPDFGeneratorRepository, max_workers: int = 4
+        self,
+        pdf_generator_repository: IPDFGeneratorRepository,
+        error_pdf_generator_repository: IPDFGeneratorRepository,
+        max_workers: int = 4,
     ):
         self.pdf_generator_repository = pdf_generator_repository
+        self.error_pdf_generator_repository = error_pdf_generator_repository
         self.max_workers = max_workers
         self.logger = getLogger(__name__)
 
@@ -41,10 +45,14 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
             return page_output_path
         except Exception as e:
             self.logger.error(
-                f"Error processing page {page_with_translation.page_number}: {e}"
+                f"Error compiling page {page_with_translation.page_number}: {e}"
             )
             # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
-            raise
+
+            self.error_pdf_generator_repository.generate_pdf(
+                page=page_with_translation, output_path=page_output_path
+            )
+            return page_output_path
 
     def _merge_pdfs(self, pdf_paths: List[str], output_path: str) -> str:
         """PDFを結合する"""
