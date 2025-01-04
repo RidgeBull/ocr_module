@@ -90,6 +90,10 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             )
         )
 
+        # ヘッダーを削除
+        document.append(NoEscape(r"\setlength{\topskip}{0pt}"))
+        document.append(NoEscape(r"\setlength{\headheight}{0pt}"))
+
         # 日本語を表示するための設定
         document.append(NoEscape(r"\begin{CJK}{UTF8}{ipxm}"))
 
@@ -98,7 +102,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # ドキュメントにパラグラフを挿入
         for paragraph in paragraphs:
             if paragraph.role == "sectionHeading":
-                self.paragraph_logger.info(f"sectionHeading: {paragraph.content}")
+                self.paragraph_logger.debug(f"sectionHeading: {paragraph.content}")
                 document = self.insert_section_heading_paragraph(paragraph, document)
             elif paragraph.role == "footnote":
                 document = self.insert_footnote_paragraph(paragraph, document)
@@ -176,6 +180,10 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             """
             )
         )
+
+        # ヘッダーを削除
+        document.append(NoEscape(r"\setlength{\topskip}{0pt}"))
+        document.append(NoEscape(r"\setlength{\headheight}{0pt}"))
 
         # 日本語を表示するための設定
         document.append(NoEscape(r"\begin{CJK}{UTF8}{ipxm}"))
@@ -264,6 +272,10 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             )
         )
 
+        # ヘッダーを削除
+        document.append(NoEscape(r"\setlength{\topskip}{0pt}"))
+        document.append(NoEscape(r"\setlength{\headheight}{0pt}"))
+
         document.append(NoEscape(r"\begin{CJK}{UTF8}{ipxm}"))
 
         paragraphs = self.convert_paragraphs_with_formula_id_to_latex(
@@ -319,11 +331,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         Returns:
             List[Paragraph]: LaTeX形式に変換されたパラグラフのリスト
         """
-        self.paragraph_logger.info(f"--------------------------------")
-        self.paragraph_logger.info(
+        self.paragraph_logger.debug(f"--------------------------------")
+        self.paragraph_logger.debug(
             f"page_paragraphs: {page_paragraphs} \npage_formulas: {page_formulas}"
         )
-        self.paragraph_logger.info(f"--------------------------------")
+        self.paragraph_logger.debug(f"--------------------------------")
         current_formula_index = 0
         total_formulas = len(page_formulas)
 
@@ -333,8 +345,8 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             if num_formula <= 0:
                 continue
 
-            self.paragraph_logger.info(f"num_formula: {num_formula}")
-            self.paragraph_logger.info(f"paragraph before replace: {paragraph.content}")
+            self.paragraph_logger.debug(f"num_formula: {num_formula}")
+            self.paragraph_logger.debug(f"paragraph before replace: {paragraph.content}")
 
             for i in range(num_formula):
                 if current_formula_index >= total_formulas:
@@ -354,7 +366,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     f":formula:", f"${formula.latex_value}$", 1
                 )
                 current_formula_index += 1
-            self.paragraph_logger.info(f"paragraph after replace: {paragraph.content}")
+            self.paragraph_logger.debug(f"paragraph after replace: {paragraph.content}")
             # もしまだ:formula:が残っていたらwarningを出す
             if ":formula:" in paragraph.content:
                 self.paragraph_logger.warning(
@@ -376,11 +388,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         Returns:
             List[Paragraph]: LaTeX形式に変換されたパラグラフのリスト
         """
-        self.paragraph_logger.info(f"--------------------------------")
-        self.paragraph_logger.info(
+        self.paragraph_logger.debug(f"--------------------------------")
+        self.paragraph_logger.debug(
             f"page_paragraphs_with_translation: {page_paragraphs_with_translation}"
         )
-        self.paragraph_logger.info(f"--------------------------------")
+        self.paragraph_logger.debug(f"--------------------------------")
         current_formula_index = 0
         total_formulas = len(page_formulas)
         paragraphs: List[Paragraph] = []
@@ -400,8 +412,8 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                 )
                 paragraphs.append(latex_paragraph)
                 continue
-            self.paragraph_logger.info(f"num_formula: {num_formula}")
-            self.paragraph_logger.info(
+            self.paragraph_logger.debug(f"num_formula: {num_formula}")
+            self.paragraph_logger.debug(
                 f"paragraph before replace: {paragraph_with_translation.translation}"
             )
 
@@ -419,7 +431,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     )
                 )
                 current_formula_index += 1
-            self.paragraph_logger.info(
+            self.paragraph_logger.debug(
                 f"paragraph after replace: {paragraph_with_translation.translation}"
             )
             # もしまだ:formula:が残っていたらwarningを出す
@@ -452,11 +464,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         Returns:
             List[Paragraph]: LaTeX形式に変換されたパラグラフのリスト
         """
-        self.paragraph_logger.info(f"--------------------------------")
-        self.paragraph_logger.info(
+        self.paragraph_logger.debug(f"--------------------------------")
+        self.paragraph_logger.debug(
             f"page_paragraphs_with_formula_id: {page_paragraphs_with_formula_id}"
         )
-        self.paragraph_logger.info(f"--------------------------------")
+        self.paragraph_logger.debug(f"--------------------------------")
         total_formulas = len(page_formulas)
         paragraphs: List[Paragraph] = []
         formula_dict = {
@@ -469,10 +481,10 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             )
             # <<formula_{formula_id}>>が含まれていたら
             formula_ids = formula_pattern.findall(paragraph_with_formula_id.translation)
-            self.paragraph_logger.info(f"Hit formula_ids: {formula_ids}")
+            self.paragraph_logger.debug(f"Hit formula_ids: {formula_ids}")
             for formula_id in formula_ids:
                 if int(formula_id) in formula_dict:
-                    self.paragraph_logger.info(f"Replace formula_id: {formula_id}")
+                    self.paragraph_logger.debug(f"Replace formula_id: {formula_id}")
                     # もしformula_latexが\begin{array}{}を含んでいたら、不正な数式として扱う
                     if r"\begin{array}{}" in formula_dict[int(formula_id)]:
                         formula_dict[int(formula_id)] = formula_dict[
@@ -485,7 +497,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                             1,
                         )
                     )
-            self.paragraph_logger.info(
+            self.paragraph_logger.debug(
                 f"paragraph_with_formula_id.translation: {paragraph_with_formula_id.translation}"
             )
             latex_paragraph = Paragraph(
