@@ -14,7 +14,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         self,
         pdf_generator_repository: IPDFGeneratorRepository,
         error_pdf_generator_repository: IPDFGeneratorRepository,
-        max_workers: int = 10,
+        max_workers: int = 5,
     ):
         self.pdf_generator_repository = pdf_generator_repository
         self.error_pdf_generator_repository = error_pdf_generator_repository
@@ -114,7 +114,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
                     self.logger.warning(
                         f"Failed to process page {page.page_number}: {e}"
                     )
-                    page_output_path = f"{output_path.replace('.pdf', '')}_{page.page_number}_error.pdf"
+                    page_output_path = f"{output_path.replace('.pdf', '')}_{page.page_number}.pdf"
                     self.error_pdf_generator_repository.generate_pdf_with_translation(
                         page=page, output_path=page_output_path
                     )
