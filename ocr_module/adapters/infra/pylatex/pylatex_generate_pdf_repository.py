@@ -299,7 +299,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             output_basename = output_path
 
         try:
-            document.generate_pdf(output_basename, clean_tex=False)
+            document.generate_pdf(
+                output_basename,
+                clean_tex=False,
+                compiler_args=["-interaction=nonstopmode"],
+            )
         except Exception as e:
             self.logger.error(f"Error generating PDF: {e}")
 
@@ -331,7 +335,9 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                 continue
 
             self.paragraph_logger.debug(f"num_formula: {num_formula}")
-            self.paragraph_logger.debug(f"paragraph before replace: {paragraph.content}")
+            self.paragraph_logger.debug(
+                f"paragraph before replace: {paragraph.content}"
+            )
 
             for i in range(num_formula):
                 if current_formula_index >= total_formulas:

@@ -46,12 +46,14 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         except Exception as e:
             self.logger.error(
                 f"Error compiling page {page_with_translation.page_number}: {e}"
+                f"Generating error PDF"
             )
             # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
 
             self.error_pdf_generator_repository.generate_pdf_with_translation(
                 page=page_with_translation, output_path=page_output_path
             )
+            self.logger.info(f"Generated error PDF at {page_output_path}")
             return page_output_path
 
     def _merge_pdfs(self, pdf_paths: List[str], output_path: str) -> str:
