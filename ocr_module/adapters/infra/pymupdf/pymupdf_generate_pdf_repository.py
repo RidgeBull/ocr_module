@@ -1,13 +1,10 @@
 from ocr_module.domain.repositories import IPDFGeneratorRepository
-from pymupdf import Page as PyMuPDFPage
 import pymupdf
 from logging import getLogger, INFO, DEBUG
 from typing import Tuple, List
 from ocr_module.domain.entities import (
     Page,
     PageWithTranslation,
-    Paragraph,
-    ParagraphWithTranslation,
 )
 
 
@@ -32,7 +29,7 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
         self._logger.debug(f"Generating PDF with page: {page}")
         paragraphs = page.paragraphs
         document = pymupdf.Document()
-        pymupdf_page = document.new_page(width=page.width*72, height=page.height*72)
+        pymupdf_page = document.new_page(width=page.width * 72, height=page.height * 72)
         for paragraph in paragraphs:
             pymupdf_page.insert_htmlbox(
                 _convert_inch_bbox_to_pt(paragraph.bbox),
@@ -57,13 +54,15 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
                 stream=display_formula.image_data,
             )
         self._logger.info(f"Inserted {len(page.display_formulas)} display formulas")
-        document.save(output_path)
+        document.save(output_path, garbage=4, deflate=True, clean=True)
 
-    def generate_pdf_with_translation(self, page: PageWithTranslation, output_path: str):
+    def generate_pdf_with_translation(
+        self, page: PageWithTranslation, output_path: str
+    ):
         self._logger.debug(f"Generating PDF with page: {page}")
         paragraphs = page.paragraphs
         document = pymupdf.Document()
-        pymupdf_page = document.new_page(width=page.width*72, height=page.height*72)
+        pymupdf_page = document.new_page(width=page.width * 72, height=page.height * 72)
         for paragraph in paragraphs:
             pymupdf_page.insert_htmlbox(
                 _convert_inch_bbox_to_pt(paragraph.bbox),
@@ -88,12 +87,12 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
                 stream=display_formula.image_data,
             )
         self._logger.info(f"Inserted {len(page.display_formulas)} display formulas")
-        document.save(output_path)
+        document.save(output_path, garbage=4, deflate=True, clean=True)
 
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
         paragraphs = page.paragraphs
         document = pymupdf.Document()
-        pymupdf_page = document.new_page(width=page.width*72, height=page.height*72)
+        pymupdf_page = document.new_page(width=page.width * 72, height=page.height * 72)
         for paragraph in paragraphs:
             pymupdf_page.insert_htmlbox(
                 _convert_inch_bbox_to_pt(paragraph.bbox),
@@ -118,4 +117,4 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
                 stream=display_formula.image_data,
             )
         self._logger.info(f"Inserted {len(page.display_formulas)} display formulas")
-        document.save(output_path)
+        document.save(output_path, garbage=4, deflate=True, clean=True)
