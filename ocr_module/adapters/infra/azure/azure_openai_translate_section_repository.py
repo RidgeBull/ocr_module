@@ -24,7 +24,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
             api_version="2024-07-01-preview",
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         ),
-        model: str = "rb-azure-openai-001",
+        model: str = "gpt-4o-2024-11-20",
         retry_limit: int = 3,
         retry_delay: int = 10,
     ):
@@ -138,7 +138,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
 
     def _request_translate(self, messages: List[dict[str, str]]) -> Dict[str, Any]:
         """
-        Request translate from OpenAI API
+        Request translate from AzureOpenAI API
         """
         retry_count = 0
         while retry_count < self._retry_limit:
