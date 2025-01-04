@@ -59,7 +59,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             "right": "0in",
         }
         document = Document(geometry_options=geometry_options)
-        document.packages.append(Package("textpos"))
+        document.packages.append(Package("textpos", options=["absolute"]))
         document.packages.append(Package("amsmath"))
         document.packages.append(Package("amssymb"))
         document.packages.append(Package("amsfonts"))
@@ -89,10 +89,6 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             """
             )
         )
-
-        # ヘッダーを削除
-        document.append(NoEscape(r"\setlength{\topskip}{0pt}"))
-        document.append(NoEscape(r"\setlength{\headheight}{0pt}"))
 
         # 日本語を表示するための設定
         document.append(NoEscape(r"\begin{CJK}{UTF8}{ipxm}"))
@@ -150,7 +146,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             "right": "0in",
         }
         document = Document(geometry_options=geometry_options)
-        document.packages.append(Package("textpos"))
+        document.packages.append(Package("textpos", options=["absolute"]))
         document.packages.append(Package("amsmath"))
         document.packages.append(Package("amssymb"))
         document.packages.append(Package("amsfonts"))
@@ -180,10 +176,6 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             """
             )
         )
-
-        # ヘッダーを削除
-        document.append(NoEscape(r"\setlength{\topskip}{0pt}"))
-        document.append(NoEscape(r"\setlength{\headheight}{0pt}"))
 
         # 日本語を表示するための設定
         document.append(NoEscape(r"\begin{CJK}{UTF8}{ipxm}"))
@@ -242,7 +234,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             "right": "0in",
         }
         document = Document(geometry_options=geometry_options)
-        document.packages.append(Package("textpos"))
+        document.packages.append(Package("textpos", options=["absolute"]))
         document.packages.append(Package("amsmath"))
         document.packages.append(Package("amssymb"))
         document.packages.append(Package("amsfonts"))
@@ -271,10 +263,6 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                 """
             )
         )
-
-        # ヘッダーを削除
-        document.append(NoEscape(r"\setlength{\topskip}{0pt}"))
-        document.append(NoEscape(r"\setlength{\headheight}{0pt}"))
 
         document.append(NoEscape(r"\begin{CJK}{UTF8}{ipxm}"))
 
