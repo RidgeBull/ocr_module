@@ -24,7 +24,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
             api_version="2024-07-01-preview",
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         ),
-        model: str = "gpt-4o",
+        model: str = "rb-azure-openai-001",
         retry_limit: int = 3,
         retry_delay: int = 10,
     ):
