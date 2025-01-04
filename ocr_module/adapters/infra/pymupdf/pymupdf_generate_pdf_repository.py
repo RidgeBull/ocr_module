@@ -1,6 +1,6 @@
 from ocr_module.domain.repositories import IPDFGeneratorRepository
-import pymupdf
 from pymupdf import Document
+import pymupdf
 from logging import getLogger, INFO
 from typing import Tuple, List
 from ocr_module.domain.entities import (
@@ -29,42 +29,58 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
             page (Page): ページ
             output_path (str): 出力パス
         """
+        self._logger.debug(f"Generating PDF with page: {page}")
         paragraphs = page.paragraphs
-        document = Document()
+        document = pymupdf.Document(width=page.width*72, height=page.height*72)
+        document.new_page(width=page.width*72, height=page.height*72)
         for paragraph in paragraphs:
             document = self._insert_paragraph(paragraph, document)
+        self._logger.debug(f"Inserted {len(paragraphs)} paragraphs")
         for figure in page.figures:
             document = self._insert_graphic(figure.image_data, document, figure.bbox)
+        self._logger.debug(f"Inserted {len(page.figures)} figures")
         for table in page.tables:
             document = self._insert_graphic(table.image_data, document, table.bbox)
+        self._logger.debug(f"Inserted {len(page.tables)} tables")
         for display_formula in page.display_formulas:
             document = self._insert_graphic(display_formula.image_data, document, display_formula.bbox)
+        self._logger.debug(f"Inserted {len(page.display_formulas)} display formulas")
         document.save(output_path)
 
     def generate_pdf_with_translation(self, page: PageWithTranslation, output_path: str):
+        self._logger.debug(f"Generating PDF with page: {page}")
         paragraphs = page.paragraphs
-        document = Document()
+        document = pymupdf.Document(width=page.width*72, height=page.height*72)
+        document.new_page(width=page.width*72, height=page.height*72)
         for paragraph in paragraphs:
             document = self._insert_paragraph_with_translation(paragraph, document)
+        self._logger.debug(f"Inserted {len(paragraphs)} paragraphs")
         for figure in page.figures:
             document = self._insert_graphic(figure.image_data, document, figure.bbox)
+        self._logger.debug(f"Inserted {len(page.figures)} figures")
         for table in page.tables:
             document = self._insert_graphic(table.image_data, document, table.bbox)
         for display_formula in page.display_formulas:
             document = self._insert_graphic(display_formula.image_data, document, display_formula.bbox)
+        self._logger.debug(f"Inserted {len(page.display_formulas)} display formulas")
         document.save(output_path)
 
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
         paragraphs = page.paragraphs
-        document = Document()
+        document = pymupdf.Document(width=page.width*72, height=page.height*72)
+        document.new_page(width=page.width*72, height=page.height*72)
         for paragraph in paragraphs:
             document = self._insert_paragraph_with_formula_id(paragraph, document)
+        self._logger.debug(f"Inserted {len(paragraphs)} paragraphs")
         for figure in page.figures:
             document = self._insert_graphic(figure.image_data, document, figure.bbox)
+        self._logger.debug(f"Inserted {len(page.figures)} figures")
         for table in page.tables:
             document = self._insert_graphic(table.image_data, document, table.bbox)
+        self._logger.debug(f"Inserted {len(page.tables)} tables")
         for display_formula in page.display_formulas:
             document = self._insert_graphic(display_formula.image_data, document, display_formula.bbox)
+        self._logger.debug(f"Inserted {len(page.display_formulas)} display formulas")
         document.save(output_path)
 
     def _insert_paragraph(self, paragraph: Paragraph, document: Document) -> Document:
@@ -72,7 +88,7 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
         page = document.load_page(0)
         page.insert_htmlbox(
             _convert_inch_bbox_to_pt(paragraph.bbox),
-            paragraph.content,
+            text=paragraph.content,
         )
         return document
     
@@ -81,7 +97,7 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
         page = document.load_page(0)
         page.insert_htmlbox(
             _convert_inch_bbox_to_pt(paragraph.bbox),
-            paragraph.translation,
+            text=paragraph.translation,
         )
         return document
 

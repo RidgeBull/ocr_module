@@ -49,7 +49,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
             )
             # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
 
-            self.error_pdf_generator_repository.generate_pdf(
+            self.error_pdf_generator_repository.generate_pdf_with_translation(
                 page=page_with_translation, output_path=page_output_path
             )
             return page_output_path

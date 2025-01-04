@@ -3,3 +3,4 @@ openai
 pylatex
 pypdf2
 pydantic-settings>=2.0.0
+pymupdf
