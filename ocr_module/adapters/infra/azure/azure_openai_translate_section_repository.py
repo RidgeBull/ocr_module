@@ -21,7 +21,6 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
         self,
         client: AzureOpenAI = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version="2024-07-01-preview",
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         ),
         model: str = "gpt-4o-2024-11-20",
