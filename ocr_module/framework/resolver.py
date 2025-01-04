@@ -1,4 +1,4 @@
-from ..adapters.infra.azure import AzureOCRRepository
+from ..adapters.infra.azure import AzureOCRRepository, AzureOpenAITranslateSectionRepository
 from ..adapters.infra.openai import OpenAITranslateSectionRepository
 from ..adapters.infra.pylatex import PyLaTeXGeneratePDFRepository
 from ..adapters.infra.pymupdf import PyMuPDFImageExtractor
@@ -80,7 +80,46 @@ class OpenAITranslateClient:
             sections=translated_sections,
         )
 
+class AzureOpenAITranslateClient:
+    def __init__(self):
+        self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
+            translate_section_repository=AzureOpenAITranslateSectionRepository(),
+        )
+        self._get_translated_page_usecase = GetTranslatedPageUseCase()
 
+    def translate_document(
+        self,
+        document: Document,
+        source_language: str,
+        target_language: str,
+    ) -> TranslatedDocument:
+        """OCR結果のDocumentを翻訳する
+
+        Args:
+            document (Document): OCR結果
+            source_language (str): 翻訳元の言語
+            target_language (str): 翻訳先の言語
+
+        Returns:
+            TranslatedDocument: 翻訳済みのOCR結果
+        """
+        # セクションごとに翻訳
+        translated_sections = self._translate_section_usecase.execute(
+            document.sections,
+            source_language=source_language,
+            target_language=target_language,
+        )
+
+        # セクションごとの翻訳をページごとのデータに整形しなおす
+        translated_pages = self._get_translated_page_usecase.execute(
+            pages=document.pages,
+            translated_sections=translated_sections,
+        )
+
+        return TranslatedDocument(
+            pages=translated_pages,
+            sections=translated_sections,
+        )
 class GeneratePDFClient:
     def __init__(self):
         self._generate_translated_pdf_usecase = (
