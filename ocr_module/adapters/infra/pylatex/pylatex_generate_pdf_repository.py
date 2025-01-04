@@ -129,7 +129,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         try:
             document.generate_pdf(output_path, clean_tex=False)
         except Exception as e:
-            self.logger.error(f"Error generating PDF: {e}")
+            self.logger.warning(f"Error generating PDF: {e}")
 
     def generate_pdf_with_translation(
         self, page: PageWithTranslation, output_path: str
@@ -211,7 +211,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         try:
             document.generate_pdf(output_path, clean_tex=False)
         except Exception as e:
-            self.logger.error(f"Error generating PDF: {e}")
+            self.logger.warning(f"Error generating PDF: {e}")
 
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
         """
@@ -305,7 +305,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                 compiler_args=["-interaction=nonstopmode"],
             )
         except Exception as e:
-            self.logger.error(f"Error generating PDF: {e}")
+            self.logger.warning(f"Error generating PDF: {e}")
 
     def convert_paragraphs_to_latex(
         self, page_paragraphs: List[Paragraph], page_formulas: List[Formula]

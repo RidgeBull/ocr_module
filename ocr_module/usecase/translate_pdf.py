@@ -44,7 +44,7 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
             )
             return page_output_path
         except Exception as e:
-            self.logger.error(
+            self.logger.warning(
                 f"Error compiling page {page_with_translation.page_number}: {e}"
                 f"Generating error PDF"
             )
