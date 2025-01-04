@@ -31,7 +31,7 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
         """
         self._logger.debug(f"Generating PDF with page: {page}")
         paragraphs = page.paragraphs
-        document = pymupdf.open()
+        document = pymupdf.Document()
         pymupdf_page = document.new_page(width=page.width*72, height=page.height*72)
         for paragraph in paragraphs:
             pymupdf_page.insert_htmlbox(
@@ -62,7 +62,7 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
     def generate_pdf_with_translation(self, page: PageWithTranslation, output_path: str):
         self._logger.debug(f"Generating PDF with page: {page}")
         paragraphs = page.paragraphs
-        document = pymupdf.open()
+        document = pymupdf.Document()
         pymupdf_page = document.new_page(width=page.width*72, height=page.height*72)
         for paragraph in paragraphs:
             pymupdf_page.insert_htmlbox(
@@ -92,7 +92,7 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
 
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
         paragraphs = page.paragraphs
-        document = pymupdf.open()
+        document = pymupdf.Document()
         pymupdf_page = document.new_page(width=page.width*72, height=page.height*72)
         for paragraph in paragraphs:
             pymupdf_page.insert_htmlbox(

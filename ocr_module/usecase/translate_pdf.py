@@ -118,6 +118,9 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
                     self.error_pdf_generator_repository.generate_pdf_with_translation(
                         page=page, output_path=page_output_path
                     )
+                    self.logger.info(
+                        f"Generated error PDF at {page_output_path}"
+                    )
                     page_pdf_paths.append(page_output_path)
         # すべてのPDFを結合
         if not page_pdf_paths:
