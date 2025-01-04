@@ -46,7 +46,6 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         except Exception as e:
             self.logger.warning(
                 f"Error compiling page {page_with_translation.page_number}: {e}"
-                f"Generating error PDF"
             )
             # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
             raise e
