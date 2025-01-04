@@ -1,4 +1,10 @@
-from .framework.resolver import AzureOcrClient, GeneratePDFClient, OpenAITranslateClient, AzureOpenAITranslateClient
+from .framework.resolver import (
+    AzureOcrClient,
+    GeneratePDFClient,
+    OpenAITranslateClient,
+    AzureOpenAITranslateClient,
+    DeepLTranslateClient,
+)
 from ocr_module.domain.entities import (
     Formula,
     DisplayFormula,

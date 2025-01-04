@@ -462,12 +462,12 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         formula_dict = {
             formula.formula_id: formula.latex_value for formula in page_formulas
         }
-        formula_pattern = re.compile(r"<<formula\\_(\d+)>>")
+        formula_pattern = re.compile(r"<formula\\_(\d+)/>")
         for paragraph_with_formula_id in page_paragraphs_with_formula_id:
             paragraph_with_formula_id.translation = escape_latex(
                 paragraph_with_formula_id.translation
             )
-            # <<formula_{formula_id}>>が含まれていたら
+            # <formula_{formula_id}/>が含まれていたら
             formula_ids = formula_pattern.findall(paragraph_with_formula_id.translation)
             self.paragraph_logger.debug(f"Hit formula_ids: {formula_ids}")
             for formula_id in formula_ids:
@@ -480,7 +480,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                         ].replace(r"\begin{array}{}", r"\begin{array}{l}")
                     paragraph_with_formula_id.translation = (
                         paragraph_with_formula_id.translation.replace(
-                            rf"<<formula\_{formula_id}>>",
+                            rf"<formula\_{formula_id}/>",
                             f"${formula_dict[int(formula_id)]}$",
                             1,
                         )

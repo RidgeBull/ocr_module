@@ -105,8 +105,8 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"You are only allowed to translate.\n"
                     f"You are a great translator. Please translate the following text from {source_language} to {target_language}.\n"
                     f"Each paragraph is prefixed with '### Paragraph n ###'. Please include the same prefixes in your translations to correspond each translation with the input text.\n"
-                    f"Do not translate the '### Paragraph n ###' prefixes and <<formula_n>> placeholders.\n"
-                    f"Do not add or remove <<formula_n>> placeholders.\n"
+                    f"Do not translate the '### Paragraph n ###' prefixes and <formula_n/> placeholders.\n"
+                    f"Do not add or remove <formula_n/> placeholders.\n"
                     f"Do not add any other text or comments.\n"
                 ),
             },

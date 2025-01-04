@@ -6,7 +6,7 @@ from ocr_module.domain.entities import Page, Paragraph, Section
 
 
 class ChangeFormulaIdUseCase:
-    """文中の`:formula:`を`<<formula_i>>`に変換する"""
+    """文中の`:formula:`を`<formula_i/>`に変換する"""
 
     def __init__(self):
         self.logger = getLogger(__name__)
@@ -51,7 +51,7 @@ class ChangeFormulaIdUseCase:
         for paragraph in page.paragraphs:
             num_formula = paragraph.content.count(":formula:")
             for i in range(num_formula):
-                formula_tag = f"<<formula_{current_formula_id}>>"
+                formula_tag = f"<formula_{current_formula_id}/>"
                 paragraph.content = paragraph.content.replace(
                     f":formula:", formula_tag, 1
                 )
