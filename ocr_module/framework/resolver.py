@@ -172,6 +172,7 @@ class GeneratePDFClient:
             )
         )
         self._pdf_generator_repository = PyLaTeXGeneratePDFRepository()
+        self._error_pdf_generator_repository = PyMuPDFGeneratePDFRepository()
     def generate_pdf_from_document(
         self,
         document: TranslatedDocument,
@@ -208,7 +209,13 @@ class GeneratePDFClient:
         Returns:
             str: 出力先のパス
         """
-        self._pdf_generator_repository.generate_pdf_with_formula_id(
-            page_with_translation, output_path
-        )
+        try:
+            self._pdf_generator_repository.generate_pdf_with_formula_id(
+                page_with_translation, output_path
+            )
+        except Exception as e:
+            self._error_pdf_generator_repository.generate_pdf_with_translation(
+                page_with_translation, output_path
+            )
         return output_path
+
