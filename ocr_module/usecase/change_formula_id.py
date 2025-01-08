@@ -1,5 +1,5 @@
 import logging
-from logging import getLogger
+from logging import getLogger, INFO
 from typing import Dict, List
 
 from ocr_module.domain.entities import Page, Paragraph, Section
@@ -10,6 +10,7 @@ class ChangeFormulaIdUseCase:
 
     def __init__(self):
         self.logger = getLogger(__name__)
+        self.logger.setLevel(INFO)
         # 既存のハンドラを削除
         # for handler in self.logger.handlers:
         #     self.logger.removeHandler(handler)
@@ -39,7 +40,7 @@ class ChangeFormulaIdUseCase:
                     paragraph.content = processed_paragraphs[
                         paragraph.paragraph_id
                     ].content
-                    self.logger.info(
+                    self.logger.debug(
                         f"Changed formula tag in paragraph {paragraph.paragraph_id}: {paragraph.content}"
                     )
         self.logger.info(f"Processed sections: {sections}")
@@ -55,9 +56,9 @@ class ChangeFormulaIdUseCase:
                 paragraph.content = paragraph.content.replace(
                     f":formula:", formula_tag, 1
                 )
-                self.logger.info(
+                self.logger.debug(
                     f"Changed formula tag in paragraph {paragraph.paragraph_id}: {formula_tag}"
                 )
-                self.logger.info(f"Paragraph content: {paragraph.content}")
+                self.logger.debug(f"Paragraph content: {paragraph.content}")
                 current_formula_id += 1
         return page

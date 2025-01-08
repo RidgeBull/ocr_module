@@ -3,6 +3,8 @@ import os
 import re
 from logging import getLogger
 from typing import Dict, List, Tuple
+from io import BytesIO
+import base64
 
 from pylatex import (
     Command,
@@ -214,6 +216,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         except Exception as e:
             self.logger.warning(f"Error generating PDF: {e}")
             raise e
+
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
         """
         PDFを生成する
@@ -300,14 +303,19 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             output_basename = output_path
 
         try:
+            pdf_stream = BytesIO()
             document.generate_pdf(
-                output_basename,
+                pdf_stream,
                 clean_tex=False,
                 compiler_args=["-interaction=nonstopmode"],
             )
+            pdf_stream.seek(0)
+            with open(f"{output_basename}.pdf", "wb") as f:
+                f.write(pdf_stream.getvalue())
         except Exception as e:
             self.logger.warning(f"Error generating PDF: {e}")
             raise e
+
     def convert_paragraphs_to_latex(
         self, page_paragraphs: List[Paragraph], page_formulas: List[Formula]
     ) -> List[Paragraph]:
@@ -556,12 +564,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             return document
 
         # 画像を保存
-        image_path = os.path.join(
-            self.output_dir,
-            f"formula_{display_formula.page_number}_{display_formula.formula_id}.png",
-        )
-        with open(image_path, "wb") as f:
-            f.write(display_formula.image_data)
+        image_data = base64.b64decode(display_formula.image_data).decode("utf-8")
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
@@ -571,7 +574,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     pos="t",
                 )
             ) as mp:
-                content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
+                content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{data:image/png;base64,{image_data}}}"
                 mp.append(NoEscape(content))
         return document
 
@@ -711,12 +714,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             return document
 
         # 画像を保存
-        image_path = os.path.join(
-            self.output_dir,
-            f"figure_{figure.page_number}_{figure.figure_id}.png",
-        )
-        with open(image_path, "wb") as f:
-            f.write(figure.image_data)
+        image_data = base64.b64decode(figure.image_data).decode("utf-8")
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
@@ -726,7 +724,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     pos="t",
                 )
             ) as mp:
-                content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
+                content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{data:image/png;base64,{image_data}}}"
                 mp.append(NoEscape(content))
         return document
 
@@ -751,12 +749,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             return document
 
         # 画像を保存
-        image_path = os.path.join(
-            self.output_dir,
-            f"table_{table.page_number}_{table.table_id}.png",
-        )
-        with open(image_path, "wb") as f:
-            f.write(table.image_data)
+        image_data = base64.b64decode(table.image_data).decode("utf-8")
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
@@ -766,6 +759,6 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     pos="t",
                 )
             ) as mp:
-                content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
+                content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{data:image/png;base64,{image_data}}}"
                 mp.append(NoEscape(content))
         return document
