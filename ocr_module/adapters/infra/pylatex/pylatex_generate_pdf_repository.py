@@ -3,7 +3,6 @@ import os
 import re
 from logging import getLogger
 from typing import Dict, List, Tuple
-import tempfile
 
 from pylatex import (
     Command,
@@ -557,9 +556,9 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             return document
 
         # 画像を保存
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".png") as temp_file:
-            temp_file.write(display_formula.image_data)
-            image_path = temp_file.name
+        image_path = f"{display_formula.page_number}_{display_formula.formula_id}.png"
+        with open(image_path, "wb") as f:
+            f.write(display_formula.image_data)
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
@@ -709,9 +708,9 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             return document
 
         # 画像を保存
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".png") as temp_file:
-            temp_file.write(figure.image_data)
-            image_path = temp_file.name
+        image_path = f"{figure.page_number}_{figure.figure_id}.png"
+        with open(image_path, "wb") as f:
+            f.write(figure.image_data)
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
@@ -746,9 +745,9 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             return document
 
         # 画像を保存
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".png") as temp_file:
-            temp_file.write(table.image_data)
-            image_path = temp_file.name
+        image_path = f"{table.page_number}_{table.table_id}.png"
+        with open(image_path, "wb") as f:
+            f.write(table.image_data)
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(

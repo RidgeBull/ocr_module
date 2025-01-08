@@ -27,7 +27,7 @@ class ChangeFormulaIdUseCase:
         page_text = "\n".join(
             [paragraph.content for page in pages for paragraph in page.paragraphs]
         )
-        self.logger.info(f"Before processed pages: {page_text}")
+        self.logger.debug(f"Before processed pages: {page_text}")
         for page in pages:
             processed_page = self.change_formula_tag_in_page(page)
             processed_pages.append(processed_page)
@@ -43,7 +43,7 @@ class ChangeFormulaIdUseCase:
                     self.logger.debug(
                         f"Changed formula tag in paragraph {paragraph.paragraph_id}: {paragraph.content}"
                     )
-        self.logger.info(f"Processed sections: {sections}")
+        self.logger.debug(f"Processed sections: {sections}")
 
         return sections
 
