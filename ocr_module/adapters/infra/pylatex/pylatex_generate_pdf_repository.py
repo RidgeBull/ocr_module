@@ -558,7 +558,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # 画像を保存
         image_path = os.path.join(
             self.output_dir,
-            f"{display_formula.page_number}_{display_formula.formula_id}.png",
+            f"formula_{display_formula.page_number}_{display_formula.formula_id}.png",
         )
         with open(image_path, "wb") as f:
             f.write(display_formula.image_data)
@@ -713,7 +713,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # 画像を保存
         image_path = os.path.join(
             self.output_dir,
-            f"{figure.page_number}_{figure.figure_id}.png",
+            f"figure_{figure.page_number}_{figure.figure_id}.png",
         )
         with open(image_path, "wb") as f:
             f.write(figure.image_data)
@@ -753,7 +753,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # 画像を保存
         image_path = os.path.join(
             self.output_dir,
-            f"{table.page_number}_{table.table_id}.png",
+            f"table_{table.page_number}_{table.table_id}.png",
         )
         with open(image_path, "wb") as f:
             f.write(table.image_data)
