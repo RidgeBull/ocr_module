@@ -14,10 +14,9 @@ class TranslateSectionFormulaIdUseCase:
     def __init__(self, translate_section_repository: ITranslateSectionRepository):
         self._translate_section_repository = translate_section_repository
         self._logger = getLogger(__name__)
-        self._logger.setLevel(INFO)
-        if self._logger.hasHandlers():
-            self._logger.handlers.clear()
-        self._logger.addHandler(StreamHandler())
+        if not self._logger.hasHandlers():
+            self._logger.setLevel(INFO)
+            self._logger.addHandler(StreamHandler())
 
     def execute(
         self, sections: List[Section], source_language: str, target_language: str
@@ -41,36 +40,6 @@ class TranslateSectionFormulaIdUseCase:
     async def execute_async(
         self, sections: List[Section], source_language: str, target_language: str
     ) -> List[SectionWithTranslation]:
-
-        def request_task(section: Section) -> SectionWithTranslation:
-            if section.content_length() == 0:
-                ret = SectionWithTranslation(
-                    section_id=section.section_id,
-                    paragraphs=section.paragraphs,
-                    paragraph_ids=section.paragraph_ids,
-                    table_ids=section.table_ids,
-                    figure_ids=section.figure_ids,
-                    tables=section.tables,
-                    figures=section.figures,
-                )
-            else:
-                paras = self._translate_section_repository.translate_paragraphs_with_formula_id(
-                    section.paragraphs,
-                    source_language,
-                    target_language,
-                )
-                ret = SectionWithTranslation(
-                    section_id=section.section_id,
-                    paragraphs=paras,
-                    paragraph_ids=section.paragraph_ids,
-                    table_ids=section.table_ids,
-                    figure_ids=section.figure_ids,
-                    tables=section.tables,
-                    figures=section.figures,
-                )
-
-            return ret
-
         LIMIT = 1500
 
         async def get_result_task(section: Section) -> SectionWithTranslation:
@@ -113,13 +82,15 @@ class TranslateSectionFormulaIdUseCase:
                 tasks = [
                     asyncio.to_thread(
                         self._translate_section_repository.translate_paragraphs_with_formula_id,
-                        para_list,
+                        paras,
                         source_language,
                         target_language,
                     )
-                    for para_list in para_list
+                    for paras in para_list
                 ]
                 para_rets = await asyncio.gather(*tasks)
+                # para_rets は List[List[ParagraphWithTranslation]] なので flatten
+                para_rets = [para for para_list in para_rets for para in para_list]
                 ret = SectionWithTranslation(
                     section_id=section.section_id,
                     paragraphs=para_rets,
