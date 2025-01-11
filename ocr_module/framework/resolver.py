@@ -1,9 +1,12 @@
-from ..adapters.infra.azure import AzureOCRRepository, AzureOpenAITranslateSectionRepository
+from ..adapters.infra.azure import (
+    AzureOCRRepository,
+    AzureOpenAITranslateSectionRepository,
+)
 from ..adapters.infra.deepl import DeepLTranslateSectionRepository
 from ..adapters.infra.openai import OpenAITranslateSectionRepository
 from ..adapters.infra.pylatex import PyLaTeXGeneratePDFRepository
-from ..adapters.infra.pymupdf import PyMuPDFImageExtractor, PyMuPDFGeneratePDFRepository
-from ..domain.entities import Document, TranslatedDocument, PageWithTranslation
+from ..adapters.infra.pymupdf import PyMuPDFGeneratePDFRepository, PyMuPDFImageExtractor
+from ..domain.entities import Document, PageWithTranslation, TranslatedDocument
 from ..usecase import (
     ChangeFormulaIdUseCase,
     GenerateTranslatedPDFWithFormulaIdUseCase,
@@ -47,7 +50,7 @@ class OpenAITranslateClient:
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
 
-    def translate_document(
+    async def translate_document(
         self,
         document: Document,
         source_language: str,
@@ -64,7 +67,7 @@ class OpenAITranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections = self._translate_section_usecase.execute(
+        translated_sections = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -81,14 +84,17 @@ class OpenAITranslateClient:
             sections=translated_sections,
         )
 
+
 class AzureOpenAITranslateClient:
     def __init__(self, model: str = "gpt-4o-2024-11-20"):
         self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
-            translate_section_repository=AzureOpenAITranslateSectionRepository(model=model),
+            translate_section_repository=AzureOpenAITranslateSectionRepository(
+                model=model
+            ),
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
 
-    def translate_document(
+    async def translate_document(
         self,
         document: Document,
         source_language: str,
@@ -105,7 +111,7 @@ class AzureOpenAITranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections = self._translate_section_usecase.execute(
+        translated_sections = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -121,7 +127,8 @@ class AzureOpenAITranslateClient:
             pages=translated_pages,
             sections=translated_sections,
         )
-    
+
+
 class DeepLTranslateClient:
     def __init__(self):
         self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
@@ -129,7 +136,7 @@ class DeepLTranslateClient:
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
 
-    def translate_document(
+    async def translate_document(
         self,
         document: Document,
         source_language: str,
@@ -146,7 +153,7 @@ class DeepLTranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections = self._translate_section_usecase.execute(
+        translated_sections = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -163,6 +170,7 @@ class DeepLTranslateClient:
             sections=translated_sections,
         )
 
+
 class GeneratePDFClient:
     def __init__(self):
         self._generate_translated_pdf_usecase = (
@@ -173,6 +181,7 @@ class GeneratePDFClient:
         )
         self._pdf_generator_repository = PyLaTeXGeneratePDFRepository()
         self._error_pdf_generator_repository = PyMuPDFGeneratePDFRepository()
+
     def generate_pdf_from_document(
         self,
         document: TranslatedDocument,
@@ -218,4 +227,3 @@ class GeneratePDFClient:
                 page_with_translation, output_path
             )
         return output_path
-
