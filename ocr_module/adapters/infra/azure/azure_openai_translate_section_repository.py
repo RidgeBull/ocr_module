@@ -3,6 +3,8 @@ import time
 from logging import INFO, getLogger
 from typing import Any, Dict, List
 
+from openai import AzureOpenAI
+
 from ocr_module.domain.entities import (
     Paragraph,
     ParagraphWithTranslation,
@@ -12,7 +14,6 @@ from ocr_module.domain.entities import (
 from ocr_module.domain.repositories.i_translate_section_repository import (
     ITranslateSectionRepository,
 )
-from openai import AzureOpenAI
 
 
 class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
@@ -155,6 +156,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                 }
             except Exception as e:
                 retry_count += 1
+                self._logger.warning(f"Failed to translate: {e}")
                 time.sleep(self._retry_delay)
         raise Exception("Failed to translate")
 
