@@ -68,12 +68,11 @@ class AzureDocumentIntelligenceClient:
             AnalyzeDocumentRequest(bytes_source=document_bytes),
             features=[
                 DocumentAnalysisFeature.FORMULAS,
-                DocumentAnalysisFeature.STYLE_FONT,
+                # DocumentAnalysisFeature.STYLE_FONT,
             ],
         )
         while not poller.done():
             self._logger.debug("Waiting for result...")
-            time.sleep(5)
         if poller.status() == "failed":
             self._logger.error("Failed!")
             raise Exception("Failed to analyze document")
@@ -100,6 +99,5 @@ class AzureDocumentIntelligenceClient:
         )
         while not poller.done():
             self._logger.debug("Waiting for result...")
-            time.sleep(5)
         result: AnalyzeResult = poller.result()
         return result
