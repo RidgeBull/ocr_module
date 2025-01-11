@@ -81,7 +81,7 @@ class GenerateTranslatedPdfUseCase:
                 try:
                     pdf_path = future.result()
                     pdf_paths.append(pdf_path)
-                    self.logger.info(f"Completed processing page {page.page_number}")
+                    self.logger.debug(f"Completed processing page {page.page_number}")
                 except Exception as e:
                     self.logger.error(f"Failed to process page {page.page_number}: {e}")
 
@@ -90,6 +90,6 @@ class GenerateTranslatedPdfUseCase:
             raise Exception("No pages were successfully processed")
 
         final_path = self._merge_pdfs(pdf_paths, output_path)
-        self.logger.info(f"Successfully created merged PDF at {final_path}")
+        self.logger.debug(f"Successfully created merged PDF at {final_path}")
 
         return final_path

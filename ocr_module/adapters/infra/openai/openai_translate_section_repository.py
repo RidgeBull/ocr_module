@@ -155,7 +155,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     top_p=1.0,
                 )
                 translated_text = response.choices[0].message.content
-                print(translated_text)
+                self.logger.debug(translated_text)
                 return {
                     "status": "success",
                     "data": translated_text,
@@ -168,14 +168,14 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     def translate_section(
         self, section: Section, source_language: str, target_language: str
     ) -> SectionWithTranslation:
-        print(f"Start to translate section {section}")
+        self.logger.debug(f"Start to translate section {section}")
         messages = self.build_batch_translate_request(
             section.paragraphs, source_language, target_language
         )
         response = self._request_translate(messages)
-        self.logger.info(f"Response from OpenAI API: {response}")
+        self.logger.debug(f"Response from OpenAI API: {response}")
         translations = self.parse_batch_translate_response(response["data"])
-        self.logger.info(f"Translations: {translations}")
+        self.logger.debug(f"Translations: {translations}")
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         for translation, paragraph in zip(translations, section.paragraphs):
             paragraphs_with_translation.append(
@@ -205,9 +205,9 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
             section.paragraphs, source_language, target_language
         )
         response = self._request_translate(messages)
-        self.logger.info(f"Response from OpenAI API: {response}")
+        self.logger.debug(f"Response from OpenAI API: {response}")
         translations = self.parse_batch_translate_response(response["data"])
-        self.logger.info(f"Translations: {translations}")
+        self.logger.debug(f"Translations: {translations}")
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         for translation, paragraph in zip(translations, section.paragraphs):
             paragraphs_with_translation.append(

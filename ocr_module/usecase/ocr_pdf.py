@@ -75,7 +75,7 @@ class OCRPDFUseCase:
             List[Page]: ページのリスト
         """
         original_pages = self.ocr_repository.get_pages(document_path)
-        self.logger.info(f"Original pages: {original_pages}")
+        self.logger.debug(f"Original pages: {original_pages}")
         pdf_paths = []
 
         # 並列処理でページを処理
@@ -90,7 +90,7 @@ class OCRPDFUseCase:
                 try:
                     pdf_path = future.result()
                     pdf_paths.append(pdf_path)
-                    self.logger.info(f"Completed processing page {page.page_number}")
+                    self.logger.debug(f"Completed processing page {page.page_number}")
                 except Exception as e:
                     self.logger.error(f"Failed to process page {page.page_number}: {e}")
 
@@ -99,7 +99,7 @@ class OCRPDFUseCase:
             raise Exception("No pages were successfully processed")
 
         final_path = self._merge_pdfs(pdf_paths, output_path)
-        self.logger.info(f"Successfully created merged PDF at {final_path}")
-        self.logger.info(f"Original pages: {original_pages}")
+        self.logger.debug(f"Successfully created merged PDF at {final_path}")
+        self.logger.debug(f"Original pages: {original_pages}")
 
         return original_pages

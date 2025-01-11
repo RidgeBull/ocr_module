@@ -1,5 +1,6 @@
 import os
 import time
+from logging import getLogger
 from typing import List
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
@@ -30,6 +31,7 @@ class AzureDocumentIntelligenceClient:
             endpoint=self.endpoint,
             credential=AzureKeyCredential(self.key),
         )
+        self._logger = getLogger(__name__)
 
     def set_features(self, features: List[DocumentAnalysisFeature]):
         """
@@ -70,15 +72,15 @@ class AzureDocumentIntelligenceClient:
             ],
         )
         while not poller.done():
-            print("Waiting for result...")
+            self._logger.debug("Waiting for result...")
             time.sleep(5)
         if poller.status() == "failed":
-            print("Failed!")
+            self._logger.error("Failed!")
             raise Exception("Failed to analyze document")
         else:
-            print("Done!")
+            self._logger.debug("Done!")
             result: AnalyzeResult = poller.result()
-            print("Result is ready!")
+            self._logger.debug("Result is ready!")
             return result
 
     def analyze_document_from_url(self, document_url: str) -> AnalyzeResult:
@@ -97,7 +99,7 @@ class AzureDocumentIntelligenceClient:
             ],
         )
         while not poller.done():
-            print("Waiting for result...")
+            self._logger.debug("Waiting for result...")
             time.sleep(5)
         result: AnalyzeResult = poller.result()
         return result

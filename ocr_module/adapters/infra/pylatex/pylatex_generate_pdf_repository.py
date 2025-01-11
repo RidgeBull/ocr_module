@@ -214,6 +214,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         except Exception as e:
             self.logger.warning(f"Error generating PDF: {e}")
             raise e
+
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
         """
         PDFを生成する
@@ -308,6 +309,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         except Exception as e:
             self.logger.warning(f"Error generating PDF: {e}")
             raise e
+
     def convert_paragraphs_to_latex(
         self, page_paragraphs: List[Paragraph], page_formulas: List[Formula]
     ) -> List[Paragraph]:
@@ -638,7 +640,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
     def insert_header_paragraph(
         self, header_paragraph: Paragraph, document: Document
     ) -> Document:
-        print(f"header_paragraph: {header_paragraph}")
+        self.logger.debug(f"header_paragraph: {header_paragraph}")
         """ヘッダーパラグラフを挿入する
 
         Args:
@@ -670,7 +672,6 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
     def insert_footer_paragraph(
         footer_paragraph: Paragraph, document: Document
     ) -> Document:
-        print(f"footer_paragraph: {footer_paragraph}")
         """フッターパラグラフを挿入する"""
         bbox = footer_paragraph.bbox
         x = bbox[0]

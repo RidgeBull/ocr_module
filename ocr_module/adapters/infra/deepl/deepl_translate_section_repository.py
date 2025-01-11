@@ -1,12 +1,14 @@
-import deepl
-from typing import List
-from logging import getLogger, INFO
 import os
+from logging import INFO, getLogger
+from typing import List
+
+import deepl
+
 from ocr_module.domain.entities import (
-    Section,
-    SectionWithTranslation,
     Paragraph,
     ParagraphWithTranslation,
+    Section,
+    SectionWithTranslation,
 )
 from ocr_module.domain.repositories import ITranslateSectionRepository
 
@@ -39,7 +41,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         """
         original_texts: List[str] = [paragraph.content for paragraph in paragraphs]
         # <formula_{id}/>を無視するようにする
-        self._logger.info(f"Translating from {source_language} to {target_language}")
+        self._logger.debug(f"Translating from {source_language} to {target_language}")
         try:
             translated_texts = self._client.translate_text(
                 text=original_texts,
@@ -48,7 +50,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
                 tag_handling="xml",
                 ignore_tags=["formula"],
             )
-            self._logger.info(f"Translations: {translated_texts}")
+            self._logger.debug(f"Translations: {translated_texts}")
         except Exception as e:
             self._logger.error(f"Error Translating with DeepL: {e}", exc_info=True)
             raise e
@@ -79,7 +81,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
             target_language (str): Target language
         """
         original_texts: List[str] = [paragraph.content for paragraph in paragraphs]
-        self._logger.info(f"Original texts: {original_texts}")
+        self._logger.debug(f"Original texts: {original_texts}")
         try:
             translated_texts = self._client.translate_text(
                 original_texts,

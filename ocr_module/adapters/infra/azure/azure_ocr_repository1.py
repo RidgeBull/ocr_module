@@ -11,6 +11,7 @@ from azure.ai.documentintelligence.models import (
     DocumentSection,
     DocumentTable,
 )
+
 from ocr_module.domain.entities import (
     DisplayFormula,
     Document,
@@ -144,13 +145,13 @@ class AzureOCRRepository(IOCRRepository):
             page_logger.addHandler(handler)
 
             # ページの基本情報を記録
-            page_logger.info(f"=== Page {page_number} Analysis ===")
-            page_logger.info(
+            page_logger.debug(f"=== Page {page_number} Analysis ===")
+            page_logger.debug(
                 f"Page size: {page.width or 0.0}x{page.height or 0.0} inches\n"
             )
             if page.formulas is not None:
                 for formula in page.formulas:
-                    page_logger.info(f"Formula: {formula.value}")
+                    page_logger.debug(f"Formula: {formula.value}")
 
             # パラグラフ内の:formula:トークンを分析
             page_paragraphs = paragraphs_in_page[page_number]
@@ -161,11 +162,11 @@ class AzureOCRRepository(IOCRRepository):
             # 実際の数式の数を取得
             page_formulas = formulas_in_page[page_number]
 
-            page_logger.info(f"Number of paragraphs: {len(page_paragraphs)}")
-            page_logger.info(
+            page_logger.debug(f"Number of paragraphs: {len(page_paragraphs)}")
+            page_logger.debug(
                 f"Total :formula: tokens in paragraphs: {total_formula_tokens}"
             )
-            page_logger.info(f"Actual formulas available: {len(page_formulas)}")
+            page_logger.debug(f"Actual formulas available: {len(page_formulas)}")
 
             # 不一致がある場合は警告
             if total_formula_tokens != len(page_formulas):
@@ -177,7 +178,7 @@ class AzureOCRRepository(IOCRRepository):
             # 各パラグラフの詳細情報を記録
             for i, paragraph in enumerate(page_paragraphs):
                 formula_count = paragraph.content.count(":formula:")
-                page_logger.info(
+                page_logger.debug(
                     f"Paragraph {i}: {formula_count} :formula: tokens\n"
                     f"Content: {paragraph.content}"
                 )

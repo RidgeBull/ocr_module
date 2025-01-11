@@ -1,11 +1,10 @@
-from ocr_module.domain.repositories import IPDFGeneratorRepository
+from logging import DEBUG, INFO, getLogger
+from typing import List, Tuple
+
 import pymupdf
-from logging import getLogger, INFO, DEBUG
-from typing import Tuple, List
-from ocr_module.domain.entities import (
-    Page,
-    PageWithTranslation,
-)
+
+from ocr_module.domain.entities import Page, PageWithTranslation
+from ocr_module.domain.repositories import IPDFGeneratorRepository
 
 
 def _convert_inch_bbox_to_pt(
@@ -35,25 +34,25 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
                 _convert_inch_bbox_to_pt(paragraph.bbox),
                 text=paragraph.content,
             )
-        self._logger.info(f"Inserted {len(paragraphs)} paragraphs")
+        self._logger.debug(f"Inserted {len(paragraphs)} paragraphs")
         for figure in page.figures:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(figure.bbox),
                 stream=figure.image_data,
             )
-        self._logger.info(f"Inserted {len(page.figures)} figures")
+        self._logger.debug(f"Inserted {len(page.figures)} figures")
         for table in page.tables:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(table.bbox),
                 stream=table.image_data,
             )
-        self._logger.info(f"Inserted {len(page.tables)} tables")
+        self._logger.debug(f"Inserted {len(page.tables)} tables")
         for display_formula in page.display_formulas:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(display_formula.bbox),
                 stream=display_formula.image_data,
             )
-        self._logger.info(f"Inserted {len(page.display_formulas)} display formulas")
+        self._logger.debug(f"Inserted {len(page.display_formulas)} display formulas")
         document.save(output_path, garbage=4, deflate=True, clean=True)
 
     def generate_pdf_with_translation(
@@ -68,25 +67,25 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
                 _convert_inch_bbox_to_pt(paragraph.bbox),
                 text=paragraph.translation,
             )
-        self._logger.info(f"Inserted {len(paragraphs)} paragraphs")
+        self._logger.debug(f"Inserted {len(paragraphs)} paragraphs")
         for figure in page.figures:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(figure.bbox),
                 stream=figure.image_data,
             )
-        self._logger.info(f"Inserted {len(page.figures)} figures")
+        self._logger.debug(f"Inserted {len(page.figures)} figures")
         for table in page.tables:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(table.bbox),
                 stream=table.image_data,
             )
-        self._logger.info(f"Inserted {len(page.tables)} tables")
+        self._logger.debug(f"Inserted {len(page.tables)} tables")
         for display_formula in page.display_formulas:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(display_formula.bbox),
                 stream=display_formula.image_data,
             )
-        self._logger.info(f"Inserted {len(page.display_formulas)} display formulas")
+        self._logger.debug(f"Inserted {len(page.display_formulas)} display formulas")
         document.save(output_path, garbage=4, deflate=True, clean=True)
 
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
@@ -98,23 +97,23 @@ class PyMuPDFGeneratePDFRepository(IPDFGeneratorRepository):
                 _convert_inch_bbox_to_pt(paragraph.bbox),
                 text=paragraph.translation,
             )
-        self._logger.info(f"Inserted {len(paragraphs)} paragraphs")
+        self._logger.debug(f"Inserted {len(paragraphs)} paragraphs")
         for figure in page.figures:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(figure.bbox),
                 stream=figure.image_data,
             )
-        self._logger.info(f"Inserted {len(page.figures)} figures")
+        self._logger.debug(f"Inserted {len(page.figures)} figures")
         for table in page.tables:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(table.bbox),
                 stream=table.image_data,
             )
-        self._logger.info(f"Inserted {len(page.tables)} tables")
+        self._logger.debug(f"Inserted {len(page.tables)} tables")
         for display_formula in page.display_formulas:
             pymupdf_page.insert_image(
                 _convert_inch_bbox_to_pt(display_formula.bbox),
                 stream=display_formula.image_data,
             )
-        self._logger.info(f"Inserted {len(page.display_formulas)} display formulas")
+        self._logger.debug(f"Inserted {len(page.display_formulas)} display formulas")
         document.save(output_path, garbage=4, deflate=True, clean=True)

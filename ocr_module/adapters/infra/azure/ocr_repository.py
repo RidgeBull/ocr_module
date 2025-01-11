@@ -15,6 +15,8 @@ from azure.ai.documentintelligence.models import (
     DocumentStyle,
     DocumentTable,
 )
+from utils.logger import setup_function_logger
+
 from ocr_module.domain.entities import (
     Caption,
     Cell,
@@ -26,7 +28,6 @@ from ocr_module.domain.entities import (
     TextParagraph,
 )
 from ocr_module.domain.repositories import IImageExtractorRepository, IOcrRepository
-from utils.logger import setup_function_logger
 
 from .azure_client import AzureDocumentIntelligenceClient
 
@@ -156,7 +157,7 @@ class AzureOcrRepository(IOcrRepository):
         self._page_cache = {}
 
     def get_sections(self, document_path: str) -> List[Section]:
-        print(f"Reading document from path: {document_path}")
+        self.logger.debug(f"Reading document from path: {document_path}")
         self.document_path = document_path
         self._read_document(document_path)
         sections = self._get_sections()
@@ -190,7 +191,7 @@ class AzureOcrRepository(IOcrRepository):
         pages = self.pages
         # number of lines in each page
         for page in pages:
-            print(f"Page {page.page_number}: {len(page.lines)} lines")
+            self.logger.debug(f"Page {page.page_number}: {len(page.lines)} lines")
         if not pages:
             return (0, 0)
         return (pages[0].width, pages[0].height)
@@ -298,7 +299,7 @@ class AzureOcrRepository(IOcrRepository):
                 start_line_style_time = time.time()
                 style = _get_line_style(line.spans[0], self.styles)
                 elapsed_line_style_time = time.time() - start_line_style_time
-                self.get_line_style_logger.info(f"{elapsed_line_style_time:.6f}")
+                self.get_line_style_logger.debug(f"{elapsed_line_style_time:.6f}")
                 # line.content 内にある ':formula:' の数をカウントし、
                 # 対応する個数だけ inline_formulas を割り当てる想定
                 num_formula = line.content.count(":formula:")
@@ -325,7 +326,7 @@ class AzureOcrRepository(IOcrRepository):
             return text_lines, display_formulas, inline_formulas
         finally:
             elapsed_time = time.time() - start_time
-            self.analyze_page_logger.info(f"{elapsed_time:.6f}")
+            self.analyze_page_logger.debug(f"{elapsed_time:.6f}")
 
     def _analyze_page_paragraphs(
         self,
@@ -383,12 +384,12 @@ class AzureOcrRepository(IOcrRepository):
                 page_number=0,
             )
         start_textlines_time = time.time()
-        self.get_textlines_logger.info(
+        self.get_textlines_logger.debug(
             f"get_textlines_in_paragraph {paragraph.content}"
         )
         paragraph_text_lines = _get_textlines_in_paragraph(paragraph, text_lines)
         elapsed_textlines_time = time.time() - start_textlines_time
-        self.get_textlines_logger.info(f"{elapsed_textlines_time:.6f}")
+        self.get_textlines_logger.debug(f"{elapsed_textlines_time:.6f}")
         paragraph_text = "".join([line.text for line in paragraph_text_lines])
         text_paragraph = _TextParagraph(
             text=paragraph_text,
@@ -413,7 +414,7 @@ class AzureOcrRepository(IOcrRepository):
             page_number=paragraph.bounding_regions[0].page_number,
         )
         elapsed_time = time.time() - start_time
-        self.analyze_paragraph_logger.info(f"{elapsed_time:.6f}")
+        self.analyze_paragraph_logger.debug(f"{elapsed_time:.6f}")
         return text_paragraph
 
     def _analyze_figure(self, figure: DocumentFigure) -> Figure:
@@ -477,7 +478,7 @@ class AzureOcrRepository(IOcrRepository):
             page_number,
             bbox,
         )
-        print(f"Extracting image data for table: {bbox}")
+        self.logger.debug(f"Extracting image data for table: {bbox}")
 
         caption = Caption(bbox=(0, 0, 0, 0), content="")
         if table.caption and table.caption.bounding_regions:
@@ -578,7 +579,7 @@ class AzureOcrRepository(IOcrRepository):
             )
         finally:
             elapsed_time = time.time() - start_time
-            self.analyze_section_logger.info(f"{elapsed_time:.6f}")
+            self.analyze_section_logger.debug(f"{elapsed_time:.6f}")
 
     def _get_sections(self) -> List[Section]:
         sections: List[Section] = []
