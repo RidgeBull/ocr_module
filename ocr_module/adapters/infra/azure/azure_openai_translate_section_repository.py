@@ -1,9 +1,7 @@
 import os
 import time
-from logging import getLogger, INFO
+from logging import INFO, getLogger
 from typing import Any, Dict, List
-
-from openai import AzureOpenAI
 
 from ocr_module.domain.entities import (
     Paragraph,
@@ -14,6 +12,7 @@ from ocr_module.domain.entities import (
 from ocr_module.domain.repositories.i_translate_section_repository import (
     ITranslateSectionRepository,
 )
+from openai import AzureOpenAI
 
 
 class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
@@ -159,19 +158,16 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                 time.sleep(self._retry_delay)
         raise Exception("Failed to translate")
 
-    def translate_section(
-        self, section: Section, source_language: str, target_language: str
-    ) -> SectionWithTranslation:
-        self._logger.debug(f"Start to translate section {section}")
+    def translate_paragraphs(
+        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+    ) -> List[ParagraphWithTranslation]:
         messages = self.build_batch_translate_request(
-            section.paragraphs, source_language, target_language
+            paragraphs, source_language, target_language
         )
         response = self._request_translate(messages)
-        self._logger.debug(f"Response from OpenAI API: {response}")
         translations = self.parse_batch_translate_response(response["data"])
-        self._logger.debug(f"Translations: {translations}")
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
-        for translation, paragraph in zip(translations, section.paragraphs):
+        for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(
                 ParagraphWithTranslation(
                     paragraph_id=paragraph.paragraph_id,
@@ -182,6 +178,14 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     page_number=paragraph.page_number,
                 )
             )
+        return paragraphs_with_translation
+
+    def translate_section(
+        self, section: Section, source_language: str, target_language: str
+    ) -> SectionWithTranslation:
+        paragraphs_with_translation = self.translate_paragraphs(
+            section.paragraphs, source_language, target_language
+        )
         return SectionWithTranslation(
             section_id=section.section_id,
             paragraphs=paragraphs_with_translation,
@@ -192,18 +196,16 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
             figures=section.figures,
         )
 
-    def translate_section_with_formula_id(
-        self, section: Section, source_language: str, target_language: str
-    ) -> SectionWithTranslation:
+    def translate_paragraphs_with_formula_id(
+        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+    ) -> List[ParagraphWithTranslation]:
         messages = self.build_batch_translate_with_formula_id_request(
-            section.paragraphs, source_language, target_language
+            paragraphs, source_language, target_language
         )
         response = self._request_translate(messages)
-        self._logger.debug(f"Response from OpenAI API: {response}")
         translations = self.parse_batch_translate_response(response["data"])
-        self._logger.debug(f"Translations: {translations}")
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
-        for translation, paragraph in zip(translations, section.paragraphs):
+        for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(
                 ParagraphWithTranslation(
                     paragraph_id=paragraph.paragraph_id,
@@ -214,6 +216,14 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     page_number=paragraph.page_number,
                 )
             )
+        return paragraphs_with_translation
+
+    def translate_section_with_formula_id(
+        self, section: Section, source_language: str, target_language: str
+    ) -> SectionWithTranslation:
+        paragraphs_with_translation = self.translate_paragraphs_with_formula_id(
+            section.paragraphs, source_language, target_language
+        )
         return SectionWithTranslation(
             section_id=section.section_id,
             paragraphs=paragraphs_with_translation,

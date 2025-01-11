@@ -114,6 +114,9 @@ class Paragraph:
             translation=self.content,
         )
 
+    def content_length(self) -> int:
+        return len(self.content or "")
+
     @classmethod
     def from_dict(cls, data: dict) -> "Paragraph":
         return cls(**{k: v for k, v in data.items() if k != "image_data"})

@@ -1,7 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ocr_module.domain.entities import Section, SectionWithTranslation
+from ocr_module.domain.entities import (
+    Paragraph,
+    ParagraphWithTranslation,
+    Section,
+    SectionWithTranslation,
+)
 
 
 class ITranslateSectionRepository(ABC):
@@ -41,3 +46,43 @@ class ITranslateSectionRepository(ABC):
             SectionWithTranslation: 翻訳されたセクション
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def translate_paragraphs_with_formula_id(
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
+    ) -> List[ParagraphWithTranslation]:
+        """
+        パラグラフを翻訳する（数式ID付き）
+
+        Args:
+            paragraphs (List[Paragraph]): パラグラフ
+            source_language (str): ソース言語
+            target_language (str): ターゲット言語
+
+        Returns:
+            List[ParagraphWithTranslation]: 翻訳されたパラグラフ
+        """
+        ...
+
+    @abstractmethod
+    def translate_paragraphs(
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
+    ) -> List[ParagraphWithTranslation]:
+        """
+        パラグラフを翻訳する
+
+        Args:
+            paragraphs (List[Paragraph]): パラグラフ
+            source_language (str): ソース言語
+            target_language (str): ターゲット言語
+
+        Returns:
+            List[ParagraphWithTranslation]: 翻訳されたパラグラフ
+        """
+        ...
