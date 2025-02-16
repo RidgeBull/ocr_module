@@ -16,6 +16,8 @@ from ocr_module.domain.entities import (
     PageWithTranslation,
     Section,
     SectionWithTranslation,
+    Document,
+    TranslatedDocument,
 )
 
 __all__ = [
@@ -29,4 +31,6 @@ __all__ = [
     "PageWithTranslation",
     "Section",
     "SectionWithTranslation",
+    "Document",
+    "TranslatedDocument",
 ]
