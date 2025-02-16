@@ -283,10 +283,12 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=page_number,
                 inch_bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
             )
-            figure_element_ids = [
-                int(element.split("/")[-1])
-                for element in figure.elements
-            ]
+            figure_element_ids: List[int] = []
+            if figure.elements is not None:
+                figure_element_ids = [
+                    int(element.split("/")[-1])
+                    for element in figure.elements
+                ]
             figure_entity = Figure(
                 figure_id=idx,
                 bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
@@ -312,13 +314,13 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=page_number,
                 inch_bbox=_get_bounding_box(table.bounding_regions[0].polygon),
             )
-
-            table_cells = table.cells
-            table_element_ids = [
-                int(element.split("/")[-1])
-                for cell in table_cells
-                for element in cell.elements
-            ]
+            table_element_ids: List[int] = []
+            if table.cells is not None:
+                table_element_ids = [
+                    int(element.split("/")[-1])
+                    for cell in table.cells
+                    for element in cell.elements
+                ]
 
             table_entity = Table(
                 table_id=idx,
@@ -404,12 +406,13 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=table.bounding_regions[0].page_number,
                 inch_bbox=_get_bounding_box(table.bounding_regions[0].polygon),
             )
-            table_cells = table.cells
-            table_element_ids = [
-                int(element.split("/")[-1])
-                for cell in table_cells
-                for element in cell.elements
-            ]
+            table_element_ids: List[int] = []
+            if table.cells is not None:
+                table_element_ids = [
+                    int(element.split("/")[-1])
+                    for cell in table.cells
+                    for element in cell.elements
+                ]
             table_entity = Table(
                 table_id=int(table_id),
                 bbox=_get_bounding_box(table.bounding_regions[0].polygon),
@@ -444,10 +447,12 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=figure.bounding_regions[0].page_number,
                 inch_bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
             )   
-            figure_element_ids = [
-                int(element.split("/")[-1])
-                for element in figure.elements
-            ]
+            figure_element_ids: List[int] = []
+            if figure.elements is not None:
+                figure_element_ids = [
+                    int(element.split("/")[-1])
+                    for element in figure.elements
+                ]
             figure_entity = Figure(
                 figure_id=int(figure_id),
                 bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
