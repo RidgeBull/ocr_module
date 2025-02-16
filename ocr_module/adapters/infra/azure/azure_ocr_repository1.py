@@ -316,11 +316,12 @@ class AzureOCRRepository(IOCRRepository):
             )
             table_element_ids: List[int] = []
             if table.cells is not None:
-                table_element_ids = [
-                    int(element.split("/")[-1])
-                    for cell in table.cells
-                    for element in cell.elements
-                ]
+                for cell in table.cells:
+                    if cell.elements is not None:
+                        table_element_ids.extend([
+                            int(element.split("/")[-1])
+                            for element in cell.elements
+                        ])
 
             table_entity = Table(
                 table_id=idx,
@@ -408,11 +409,12 @@ class AzureOCRRepository(IOCRRepository):
             )
             table_element_ids: List[int] = []
             if table.cells is not None:
-                table_element_ids = [
-                    int(element.split("/")[-1])
-                    for cell in table.cells
-                    for element in cell.elements
-                ]
+                for cell in table.cells:
+                    if cell.elements is not None:
+                        table_element_ids.extend([
+                            int(element.split("/")[-1])
+                            for element in cell.elements
+                        ])
             table_entity = Table(
                 table_id=int(table_id),
                 bbox=_get_bounding_box(table.bounding_regions[0].polygon),
