@@ -185,10 +185,12 @@ class Figure:
     bbox: Tuple[float, float, float, float]
     page_number: int
     image_data: Optional[bytes]
+    element_paragraph_ids: List[int]
 
     def to_dict(self) -> dict:
         d = asdict(self)
         d.pop("image_data")
+        d.pop("element_paragraph_ids")
         return d
 
     @classmethod
@@ -199,6 +201,7 @@ class Figure:
             bbox=data["bbox"],
             page_number=data["page_number"],
             image_data=None,  # dictからの復元時はimage_dataはNoneとする
+            element_paragraph_ids=data["element_paragraph_ids"],
         )
 
 
@@ -221,10 +224,12 @@ class Table:
     bbox: Tuple[float, float, float, float]
     page_number: int
     image_data: Optional[bytes]
+    element_paragraph_ids: List[int]
 
     def to_dict(self) -> dict:
         d = asdict(self)
         d.pop("image_data")
+        d.pop("element_paragraph_ids")
         return d
 
     @classmethod
@@ -234,6 +239,7 @@ class Table:
             bbox=data["bbox"],
             page_number=data["page_number"],
             image_data=None,  # dictからの復元時はimage_dataはNoneとする
+            element_paragraph_ids=data["element_paragraph_ids"],
         )
 
 

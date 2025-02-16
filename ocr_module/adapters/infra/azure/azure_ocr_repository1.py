@@ -283,11 +283,16 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=page_number,
                 inch_bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
             )
+            figure_element_ids = [
+                int(element.split("/")[-1])
+                for element in figure.elements
+            ]
             figure_entity = Figure(
                 figure_id=idx,
                 bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
                 page_number=page_number,
                 image_data=image_data,
+                element_ids=figure_element_ids,
             )
             figures_in_page[page_number].append(figure_entity)
         return figures_in_page
@@ -307,11 +312,20 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=page_number,
                 inch_bbox=_get_bounding_box(table.bounding_regions[0].polygon),
             )
+
+            table_cells = table.cells
+            table_element_ids = [
+                int(element.split("/")[-1])
+                for cell in table_cells
+                for element in cell.elements
+            ]
+
             table_entity = Table(
                 table_id=idx,
                 bbox=_get_bounding_box(table.bounding_regions[0].polygon),
                 page_number=page_number,
                 image_data=image_data,
+                element_ids=table_element_ids,
             )
             tables_in_page[page_number].append(table_entity)
         return tables_in_page
@@ -390,11 +404,18 @@ class AzureOCRRepository(IOCRRepository):
                 page_number=table.bounding_regions[0].page_number,
                 inch_bbox=_get_bounding_box(table.bounding_regions[0].polygon),
             )
+            table_cells = table.cells
+            table_element_ids = [
+                int(element.split("/")[-1])
+                for cell in table_cells
+                for element in cell.elements
+            ]
             table_entity = Table(
                 table_id=int(table_id),
                 bbox=_get_bounding_box(table.bounding_regions[0].polygon),
                 page_number=table.bounding_regions[0].page_number,
                 image_data=image_data,
+                element_ids=table_element_ids,
             )
             tables_in_section.append(table_entity)
         return tables_in_section, [int(table_id) for table_id in tables_ids]
@@ -422,12 +443,17 @@ class AzureOCRRepository(IOCRRepository):
                 pdf_path=document_path,
                 page_number=figure.bounding_regions[0].page_number,
                 inch_bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
-            )
+            )   
+            figure_element_ids = [
+                int(element.split("/")[-1])
+                for element in figure.elements
+            ]
             figure_entity = Figure(
                 figure_id=int(figure_id),
                 bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
                 page_number=figure.bounding_regions[0].page_number,
                 image_data=image_data,
+                element_ids=figure_element_ids,
             )
             figures_in_section.append(figure_entity)
         return figures_in_section, [int(figure_id) for figure_id in figures_ids]
