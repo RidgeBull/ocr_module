@@ -190,7 +190,6 @@ class Figure:
     def to_dict(self) -> dict:
         d = asdict(self)
         d.pop("image_data")
-        d.pop("element_paragraph_ids")
         return d
 
     @classmethod
@@ -229,7 +228,6 @@ class Table:
     def to_dict(self) -> dict:
         d = asdict(self)
         d.pop("image_data")
-        d.pop("element_paragraph_ids")
         return d
 
     @classmethod
