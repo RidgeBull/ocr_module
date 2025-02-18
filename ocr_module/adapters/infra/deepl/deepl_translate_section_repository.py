@@ -17,11 +17,13 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
         retry_limit: int = 3,
+        glossary_id: str = None,
     ):
         deepl.http_client.max_network_retries = retry_limit
         self._client = deepl.Translator(auth_key=os.environ["DEEPL_API_KEY"])
         self._logger = getLogger(__name__)
         self._logger.setLevel(INFO)
+        self._glossary_id = glossary_id
 
     def _batch_translation_with_formula_placeholder(
         self,
@@ -49,6 +51,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
                 target_lang=target_language,
                 tag_handling="xml",
                 ignore_tags=["formula"],
+                glossary=self._glossary_id,
             )
             self._logger.debug(f"Translations: {translated_texts}")
         except Exception as e:
@@ -87,6 +90,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
                 original_texts,
                 source_lang=source_language,
                 target_lang=target_language,
+                glossary=self._glossary_id,
             )
             self._logger.debug(f"Translations: {translated_texts}")
         except Exception as e:

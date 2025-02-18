@@ -130,9 +130,11 @@ class AzureOpenAITranslateClient:
 
 
 class DeepLTranslateClient:
-    def __init__(self):
+    def __init__(self, glossary_id: str = None):
         self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
-            translate_section_repository=DeepLTranslateSectionRepository(),
+            translate_section_repository=DeepLTranslateSectionRepository(
+                glossary_id=glossary_id
+            ),
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
 
