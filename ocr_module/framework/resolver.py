@@ -44,9 +44,15 @@ class AzureOcrClient:
 
 
 class OpenAITranslateClient:
-    def __init__(self, model: str = "gpt-4o-2024-11-20"):
+    def __init__(
+        self,
+        model: str = "gpt-4o-2024-11-20",
+        context: str = None,
+    ):
         self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
-            translate_section_repository=OpenAITranslateSectionRepository(model=model),
+            translate_section_repository=OpenAITranslateSectionRepository(
+                model=model, context=context
+            ),
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
 

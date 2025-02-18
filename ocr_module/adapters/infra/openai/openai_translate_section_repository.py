@@ -20,6 +20,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
         client: OpenAI = OpenAI(api_key=os.environ["OPENAI_API_KEY"]),
+        context: str = None,
         model: str = "gpt-4o-2024-11-20",
         retry_limit: int = 3,
         retry_delay: int = 10,
@@ -34,6 +35,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
             retry_delay (int, optional): _description_. Defaults to 10.
         """
         self.client = client
+        self.context = context
         self.model = model
         self.retry_limit = retry_limit
         self.retry_delay = retry_delay
@@ -41,7 +43,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
 
     @staticmethod
     def build_batch_translate_request(
-        paragraphs: List[Paragraph], source_language: str, target_language: str
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
+        context: str = None,
     ) -> List[dict[str, str]]:
         """
         Build a batch translate request for OpenAI API
@@ -72,6 +77,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and :formula: placeholders.\n"
                     f"Do not add or remove :formula: placeholders.\n"
                     f"Do not add any other text or comments.\n"
+                    f"Context: {context}\n"
                 ),
             },
             {
@@ -83,7 +89,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
 
     @staticmethod
     def build_batch_translate_with_formula_id_request(
-        paragraphs: List[Paragraph], source_language: str, target_language: str
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
+        context: str = None,
     ) -> List[dict[str, str]]:
         """
         Build a batch translate request for OpenAI API
@@ -112,6 +121,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and <formula_n/> placeholders.\n"
                     f"Do not add or remove <formula_n/> placeholders.\n"
                     f"Do not add any other text or comments.\n"
+                    f"Context: {context}\n"
                 ),
             },
             {
@@ -174,7 +184,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
             f"Start to translate {len(paragraphs)} paragraphs of {con_len:,} chars"
         )
         messages = self.build_batch_translate_request(
-            paragraphs, source_language, target_language
+            paragraphs, source_language, target_language, self.context
         )
         response = self._request_translate(messages)
         translations = self.parse_batch_translate_response(response["data"])
@@ -197,7 +207,9 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     ) -> SectionWithTranslation:
         self.logger.debug(f"Start to translate section {section}")
         paragraphs_with_translation = self.translate_paragraphs(
-            section.paragraphs, source_language, target_language
+            section.paragraphs,
+            source_language,
+            target_language,
         )
         return SectionWithTranslation(
             section_id=section.section_id,
@@ -217,7 +229,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
             f"Start to translate {len(paragraphs)} paragraphs of {con_len:,} chars"
         )
         messages = self.build_batch_translate_with_formula_id_request(
-            paragraphs, source_language, target_language
+            paragraphs, source_language, target_language, self.context
         )
         response = self._request_translate(messages)
         translations = self.parse_batch_translate_response(response["data"])
@@ -239,7 +251,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         self, section: Section, source_language: str, target_language: str
     ) -> SectionWithTranslation:
         paragraphs_with_translation = self.translate_paragraphs_with_formula_id(
-            section.paragraphs, source_language, target_language
+            section.paragraphs, source_language, target_language, self.context
         )
         return SectionWithTranslation(
             section_id=section.section_id,
