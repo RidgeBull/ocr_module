@@ -8,6 +8,7 @@ from azure.ai.documentintelligence.models import (
     DocumentFigure,
     DocumentFormula,
     DocumentParagraph,
+    DocumentPage,
     DocumentSection,
     DocumentTable,
 )
@@ -27,17 +28,25 @@ from ocr_module.domain.repositories import IImageExtractorRepository, IOCRReposi
 from .azure_client import AzureDocumentIntelligenceClient
 
 
-def _get_bounding_box(polygon: List[float]) -> Tuple[float, float, float, float]:
+def _get_bounding_box(
+    polygon: List[float], unit: str
+) -> Tuple[float, float, float, float]:
     """polygonからbounding boxを取得する
 
     Args:
         polygon (List[float]): ポリゴンの座標
-
+        unit (str): 単位（"pixel" or "inch"）
     Returns:
         tuple: bounding boxの座標
     """
-    x_coordinates = [polygon[i] for i in range(0, len(polygon), 2)]
-    y_coordinates = [polygon[i] for i in range(1, len(polygon), 2)]
+    if unit == "pixel":
+        x_coordinates = [polygon[i] / 96 for i in range(0, len(polygon), 2)]
+        y_coordinates = [polygon[i] / 96 for i in range(1, len(polygon), 2)]
+    elif unit == "inch":
+        x_coordinates = [polygon[i] for i in range(0, len(polygon), 2)]
+        y_coordinates = [polygon[i] for i in range(1, len(polygon), 2)]
+    else:
+        raise ValueError(f"Invalid unit: {unit}")
     return (
         min(x_coordinates),
         min(y_coordinates),
@@ -45,7 +54,10 @@ def _get_bounding_box(polygon: List[float]) -> Tuple[float, float, float, float]
         max(y_coordinates),
     )
 
-def _convert_pixel_to_inch(pixel_width: float, pixel_height: float, unit: str) -> Tuple[float, float]:
+
+def _convert_pixel_to_inch(
+    pixel_width: float, pixel_height: float, unit: str
+) -> Tuple[float, float]:
     """ピクセルをインチに変換する
 
     Args:
@@ -59,6 +71,7 @@ def _convert_pixel_to_inch(pixel_width: float, pixel_height: float, unit: str) -
         return pixel_width, pixel_height
     else:
         raise ValueError(f"Invalid unit: {unit}")
+
 
 class AzureOCRRepository(IOCRRepository):
     def __init__(self, image_extractor: IImageExtractorRepository):
@@ -99,18 +112,22 @@ class AzureOCRRepository(IOCRRepository):
             self.logger.warning("No paragraphs found")
             paragraphs_in_page = {i: [] for i in range(1, len(pages) + 1)}
         else:
-            paragraphs_in_page = self.get_paragraphs_in_page(paragraphs, len(pages))
+            paragraphs_in_page = self.get_paragraphs_in_page(
+                paragraphs, len(pages), pages
+            )
         if tables is None:
             self.logger.warning("No tables found")
             tables_in_page = {i: [] for i in range(1, len(pages) + 1)}
         else:
-            tables_in_page = self.get_tables_in_page(tables, document_path, len(pages))
+            tables_in_page = self.get_tables_in_page(
+                tables, document_path, len(pages), pages
+            )
         if figures is None:
             self.logger.warning("No figures found")
             figures_in_page = {i: [] for i in range(1, len(pages) + 1)}
         else:
             figures_in_page = self.get_figures_in_page(
-                figures, document_path, len(pages)
+                figures, document_path, len(pages), pages
             )
 
         # display_formulaとformulaのdict
@@ -131,7 +148,10 @@ class AzureOCRRepository(IOCRRepository):
                     Formula(
                         formula_id=idx,
                         latex_value=formula.value,
-                        bbox=_get_bounding_box(formula.polygon or [0, 0, 0, 0]),
+                        bbox=_get_bounding_box(
+                            formula.polygon or [0, 0, 0, 0],
+                            pages[page_number - 1].unit or "pixel",
+                        ),
                         type="inline" if formula.kind == "inline" else "display",
                         page_number=page_number,
                     )
@@ -139,7 +159,7 @@ class AzureOCRRepository(IOCRRepository):
                 ]
                 display_formulas_in_page[page_number] = (
                     self.get_display_formulas_in_page(
-                        page_number, page.formulas, document_path
+                        page_number, page.formulas, document_path, pages
                     )
                 )
 
@@ -198,7 +218,9 @@ class AzureOCRRepository(IOCRRepository):
                 )
 
             # ページサイズをインチに変換
-            page_size = _convert_pixel_to_inch(page.width or 0.0, page.height or 0.0, page.unit or "pixel")
+            page_size = _convert_pixel_to_inch(
+                page.width or 0.0, page.height or 0.0, page.unit or "pixel"
+            )
             # ページエンティティの作成
             page_entity = Page(
                 width=page_size[0],
@@ -221,6 +243,7 @@ class AzureOCRRepository(IOCRRepository):
         paragraphs = result.paragraphs
         tables = result.tables
         figures = result.figures
+        pages = result.pages
 
         if sections is None:
             self.logger.warning("No sections or paragraphs found")
@@ -234,7 +257,7 @@ class AzureOCRRepository(IOCRRepository):
                 section_paragraph_ids = []
             else:
                 section_paragraphs, section_paragraph_ids = (
-                    self.get_paragraphs_in_section(paragraphs, section)
+                    self.get_paragraphs_in_section(paragraphs, section, pages)
                 )
             if tables is None:
                 self.logger.warning("No tables found")
@@ -242,7 +265,7 @@ class AzureOCRRepository(IOCRRepository):
                 section_table_ids = []
             else:
                 section_tables, section_table_ids = self.get_tables_in_section(
-                    tables, document_path, section
+                    tables, document_path, section, pages
                 )
             if figures is None:
                 self.logger.warning("No figures found")
@@ -250,7 +273,7 @@ class AzureOCRRepository(IOCRRepository):
                 section_figure_ids = []
             else:
                 section_figures, section_figure_ids = self.get_figures_in_section(
-                    figures, document_path, section
+                    figures, document_path, section, pages
                 )
             section_entity = Section(
                 section_id=idx,
@@ -265,8 +288,21 @@ class AzureOCRRepository(IOCRRepository):
         return sections_list
 
     def get_paragraphs_in_page(
-        self, paragraphs: List[DocumentParagraph], num_pages: int
+        self,
+        paragraphs: List[DocumentParagraph],
+        num_pages: int,
+        pages: List[DocumentPage],
     ) -> Dict[int, List[Paragraph]]:
+        """ページごとにパラグラフを抽出する
+
+        Args:
+            paragraphs (List[DocumentParagraph]): パラグラフのリスト
+            num_pages (int): ページ数
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            Dict[int, List[Paragraph]]: ページごとのパラグラフのリスト
+        """
         pararaphs_in_page: Dict[int, List[Paragraph]] = {
             i: [] for i in range(1, num_pages + 1)
         }
@@ -278,15 +314,33 @@ class AzureOCRRepository(IOCRRepository):
                 paragraph_id=idx,
                 role=paragraph.role,
                 content=paragraph.content,
-                bbox=_get_bounding_box(paragraph.bounding_regions[0].polygon),
+                bbox=_get_bounding_box(
+                    paragraph.bounding_regions[0].polygon,
+                    pages[page_number - 1].unit or "pixel",
+                ),
                 page_number=page_number,
             )
             pararaphs_in_page[page_number].append(paragraph_entity)
         return pararaphs_in_page
 
     def get_figures_in_page(
-        self, figures: List[DocumentFigure], document_path: str, num_pages: int
+        self,
+        figures: List[DocumentFigure],
+        document_path: str,
+        num_pages: int,
+        pages: List[DocumentPage],
     ) -> Dict[int, List[Figure]]:
+        """ページごとにフィギュアを抽出する
+
+        Args:
+            figures (List[DocumentFigure]): フィギュアのリスト
+            document_path (str): ドキュメントのパス
+            num_pages (int): ページ数
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            Dict[int, List[Figure]]: ページごとのフィギュアのリスト
+        """
         figures_in_page: Dict[int, List[Figure]] = {
             i: [] for i in range(1, num_pages + 1)
         }
@@ -297,17 +351,22 @@ class AzureOCRRepository(IOCRRepository):
             image_data = self.image_extractor.extract_image(
                 pdf_path=document_path,
                 page_number=page_number,
-                inch_bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
+                inch_bbox=_get_bounding_box(
+                    figure.bounding_regions[0].polygon,
+                    pages[page_number - 1].unit or "pixel",
+                ),
             )
             figure_element_ids: List[int] = []
             if figure.elements is not None:
                 figure_element_ids = [
-                    int(element.split("/")[-1])
-                    for element in figure.elements
+                    int(element.split("/")[-1]) for element in figure.elements
                 ]
             figure_entity = Figure(
                 figure_id=idx,
-                bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
+                bbox=_get_bounding_box(
+                    figure.bounding_regions[0].polygon,
+                    pages[page_number - 1].unit or "pixel",
+                ),
                 page_number=page_number,
                 image_data=image_data,
                 element_paragraph_ids=figure_element_ids,
@@ -316,8 +375,23 @@ class AzureOCRRepository(IOCRRepository):
         return figures_in_page
 
     def get_tables_in_page(
-        self, tables: List[DocumentTable], document_path: str, num_pages: int
+        self,
+        tables: List[DocumentTable],
+        document_path: str,
+        num_pages: int,
+        pages: List[DocumentPage],
     ) -> Dict[int, List[Table]]:
+        """ページごとにテーブルを抽出する
+
+        Args:
+            tables (List[DocumentTable]): テーブルのリスト
+            document_path (str): ドキュメントのパス
+            num_pages (int): ページ数
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            Dict[int, List[Table]]: ページごとのテーブルのリスト
+        """
         tables_in_page: Dict[int, List[Table]] = {
             i: [] for i in range(1, num_pages + 1)
         }
@@ -328,20 +402,25 @@ class AzureOCRRepository(IOCRRepository):
             image_data = self.image_extractor.extract_image(
                 pdf_path=document_path,
                 page_number=page_number,
-                inch_bbox=_get_bounding_box(table.bounding_regions[0].polygon),
+                inch_bbox=_get_bounding_box(
+                    table.bounding_regions[0].polygon,
+                    pages[page_number - 1].unit or "pixel",
+                ),
             )
             table_element_ids: List[int] = []
             if table.cells is not None:
                 for cell in table.cells:
                     if cell.elements is not None:
-                        table_element_ids.extend([
-                            int(element.split("/")[-1])
-                            for element in cell.elements
-                        ])
+                        table_element_ids.extend(
+                            [int(element.split("/")[-1]) for element in cell.elements]
+                        )
 
             table_entity = Table(
                 table_id=idx,
-                bbox=_get_bounding_box(table.bounding_regions[0].polygon),
+                bbox=_get_bounding_box(
+                    table.bounding_regions[0].polygon,
+                    pages[page_number - 1].unit or "pixel",
+                ),
                 page_number=page_number,
                 image_data=image_data,
                 element_paragraph_ids=table_element_ids,
@@ -350,8 +429,23 @@ class AzureOCRRepository(IOCRRepository):
         return tables_in_page
 
     def get_display_formulas_in_page(
-        self, page_number: int, formulas: List[DocumentFormula], document_path: str
+        self,
+        page_number: int,
+        formulas: List[DocumentFormula],
+        document_path: str,
+        pages: List[DocumentPage],
     ) -> List[DisplayFormula]:
+        """ページごとに表示数式を抽出する
+
+        Args:
+            page_number (int): ページ番号
+            formulas (List[DocumentFormula]): 数式のリスト
+            document_path (str): ドキュメントのパス
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            List[DisplayFormula]: ページごとの表示数式のリスト
+        """
         display_formulas: List[DisplayFormula] = []
         formulas = [formula for formula in formulas if formula.kind == "display"]
         for idx, formula in enumerate(formulas):
@@ -360,12 +454,16 @@ class AzureOCRRepository(IOCRRepository):
             image_data = self.image_extractor.extract_image(
                 pdf_path=document_path,
                 page_number=page_number,
-                inch_bbox=_get_bounding_box(formula.polygon),
+                inch_bbox=_get_bounding_box(
+                    formula.polygon, pages[page_number - 1].unit or "pixel"
+                ),
             )
             display_forumla_entity = DisplayFormula(
                 formula_id=idx,
                 latex_value=formula.value,
-                bbox=_get_bounding_box(formula.polygon),
+                bbox=_get_bounding_box(
+                    formula.polygon, pages[page_number - 1].unit or "pixel"
+                ),
                 type="display",
                 page_number=page_number,
                 image_data=image_data,
@@ -374,8 +472,21 @@ class AzureOCRRepository(IOCRRepository):
         return display_formulas
 
     def get_paragraphs_in_section(
-        self, paragraphs: List[DocumentParagraph], section: DocumentSection
+        self,
+        paragraphs: List[DocumentParagraph],
+        section: DocumentSection,
+        pages: List[DocumentPage],
     ) -> Tuple[List[Paragraph], List[int]]:
+        """セクションごとにパラグラフを抽出する
+
+        Args:
+            paragraphs (List[DocumentParagraph]): パラグラフのリスト
+            section (DocumentSection): セクション
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            Tuple[List[Paragraph], List[int]]: セクションごとのパラグラフのリストとパラグラフのIDのリスト
+        """
         elements = section.elements
         if elements is None:
             return [], []
@@ -394,7 +505,10 @@ class AzureOCRRepository(IOCRRepository):
                 paragraph_id=int(paragraph_id),
                 role=paragraph.role,
                 content=paragraph.content,
-                bbox=_get_bounding_box(paragraph.bounding_regions[0].polygon),
+                bbox=_get_bounding_box(
+                    paragraph.bounding_regions[0].polygon,
+                    pages[page_number - 1].unit or "pixel",
+                ),
                 page_number=page_number,
             )
             paragraphs_in_section.append(paragraph_entity)
@@ -403,11 +517,24 @@ class AzureOCRRepository(IOCRRepository):
         ]
 
     def get_tables_in_section(
-        self, tables: List[DocumentTable], document_path: str, section: DocumentSection
+        self,
+        tables: List[DocumentTable],
+        document_path: str,
+        section: DocumentSection,
+        pages: List[DocumentPage],
     ) -> Tuple[List[Table], List[int]]:
+        """セクションごとにテーブルを抽出する
+
+        Args:
+            tables (List[DocumentTable]): テーブルのリスト
+            document_path (str): ドキュメントのパス
+            section (DocumentSection): セクション
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            Tuple[List[Table], List[int]]: セクションごとのテーブルのリストとテーブルのIDのリスト
+        """
         elements = section.elements
-        if elements is None:
-            return [], []
         tables_ids = [
             element.split("/")[-1]
             for element in elements
@@ -421,19 +548,24 @@ class AzureOCRRepository(IOCRRepository):
             image_data = self.image_extractor.extract_image(
                 pdf_path=document_path,
                 page_number=table.bounding_regions[0].page_number,
-                inch_bbox=_get_bounding_box(table.bounding_regions[0].polygon),
+                inch_bbox=_get_bounding_box(
+                    table.bounding_regions[0].polygon,
+                    pages[table.bounding_regions[0].page_number - 1].unit or "pixel",
+                ),
             )
             table_element_ids: List[int] = []
             if table.cells is not None:
                 for cell in table.cells:
                     if cell.elements is not None:
-                        table_element_ids.extend([
-                            int(element.split("/")[-1])
-                            for element in cell.elements
-                        ])
+                        table_element_ids.extend(
+                            [int(element.split("/")[-1]) for element in cell.elements]
+                        )
             table_entity = Table(
                 table_id=int(table_id),
-                bbox=_get_bounding_box(table.bounding_regions[0].polygon),
+                bbox=_get_bounding_box(
+                    table.bounding_regions[0].polygon,
+                    pages[table.bounding_regions[0].page_number - 1].unit or "pixel",
+                ),
                 page_number=table.bounding_regions[0].page_number,
                 image_data=image_data,
                 element_paragraph_ids=table_element_ids,
@@ -446,10 +578,20 @@ class AzureOCRRepository(IOCRRepository):
         figures: List[DocumentFigure],
         document_path: str,
         section: DocumentSection,
+        pages: List[DocumentPage],
     ) -> Tuple[List[Figure], List[int]]:
+        """セクションごとにフィギュアを抽出する
+
+        Args:
+            figures (List[DocumentFigure]): フィギュアのリスト
+            document_path (str): ドキュメントのパス
+            section (DocumentSection): セクション
+            pages (List[DocumentPage]): ページのリスト
+
+        Returns:
+            Tuple[List[Figure], List[int]]: セクションごとのフィギュアのリストとフィギュアのIDのリスト
+        """
         elements = section.elements
-        if elements is None:
-            return [], []
         figures_ids = [
             element.split("/")[-1]
             for element in elements
@@ -463,17 +605,22 @@ class AzureOCRRepository(IOCRRepository):
             image_data = self.image_extractor.extract_image(
                 pdf_path=document_path,
                 page_number=figure.bounding_regions[0].page_number,
-                inch_bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
-            )   
+                inch_bbox=_get_bounding_box(
+                    figure.bounding_regions[0].polygon,
+                    pages[figure.bounding_regions[0].page_number - 1].unit or "pixel",
+                ),
+            )
             figure_element_ids: List[int] = []
             if figure.elements is not None:
                 figure_element_ids = [
-                    int(element.split("/")[-1])
-                    for element in figure.elements
+                    int(element.split("/")[-1]) for element in figure.elements
                 ]
             figure_entity = Figure(
                 figure_id=int(figure_id),
-                bbox=_get_bounding_box(figure.bounding_regions[0].polygon),
+                bbox=_get_bounding_box(
+                    figure.bounding_regions[0].polygon,
+                    pages[figure.bounding_regions[0].page_number - 1].unit or "pixel",
+                ),
                 page_number=figure.bounding_regions[0].page_number,
                 image_data=image_data,
                 element_paragraph_ids=figure_element_ids,
