@@ -19,8 +19,21 @@ class TranslateSectionFormulaIdUseCase:
             self._logger.addHandler(StreamHandler())
 
     def execute(
-        self, sections: List[Section], source_language: str, target_language: str
+        self,
+        sections: List[Section],
+        source_language: str | None,
+        target_language: str,
     ) -> List[SectionWithTranslation]:
+        """Sectionの内容を翻訳する（数式ID付き）
+
+        Args:
+            sections (List[Section]): 翻訳するSectionのリスト
+            source_language (str | None): 翻訳元の言語(None means auto translate)
+            target_language (str): 翻訳先の言語
+
+        Returns:
+            List[SectionWithTranslation]: 翻訳されたSectionWithTranslationのリスト
+        """
         section_with_translations: List[SectionWithTranslation] = []
         with ThreadPoolExecutor() as executor:
             futures = [
@@ -38,10 +51,19 @@ class TranslateSectionFormulaIdUseCase:
         return section_with_translations
 
     async def execute_async(
-        self, sections: List[Section], source_language: str, target_language: str
+        self,
+        sections: List[Section],
+        source_language: str | None,
+        target_language: str,
     ) -> List[SectionWithTranslation]:
-        LIMIT = 1500
+        """Sectionの内容を非同期で翻訳する（数式ID付き）
 
+        Args:
+            sections (List[Section]): 翻訳するSectionのリスト
+            source_language (str | None): 翻訳元の言語(None means auto translate)
+            target_language (str): 翻訳先の言語
+        """
+        LIMIT = 1500
         async def get_result_task(section: Section) -> SectionWithTranslation:
             # logging
             start_time = time.time()

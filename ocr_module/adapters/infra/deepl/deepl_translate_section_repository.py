@@ -28,14 +28,14 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
     def _batch_translation_with_formula_placeholder(
         self,
         paragraphs: List[Paragraph],
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> List[ParagraphWithTranslation]:
         """Batch translation with formula placeholder
 
         Args:
             paragraphs (List[Paragraph]): List of paragraphs to translate
-            source_language (str): Source language
+            source_language (str | None): Source language(None means auto translate)
             target_language (str): Target language
 
         Returns:
@@ -73,14 +73,14 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
     def _batch_translation(
         self,
         paragraphs: List[Paragraph],
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> List[ParagraphWithTranslation]:
         """Batch translation
 
         Args:
             paragraphs (List[Paragraph]): List of paragraphs to translate
-            source_language (str): Source language
+            source_language (str | None): Source language(None means auto translate)
             target_language (str): Target language
         """
         original_texts: List[str] = [paragraph.content for paragraph in paragraphs]
@@ -110,13 +110,16 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         return paragraphs_with_translation
 
     def translate_paragraphs_with_formula_id(
-        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str | None,
+        target_language: str,
     ) -> List[ParagraphWithTranslation]:
         """Translate section with formula placeholder
 
         Args:
             section (Section): Section to translate
-            source_language (str): Source language
+            source_language (str | None): Source language(None means auto translate)
             target_language (str): Target language
 
         Returns:
@@ -129,7 +132,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         return paragraphs_with_translation
 
     def translate_section_with_formula_id(
-        self, section: Section, source_language: str, target_language: str
+        self, section: Section, source_language: str | None, target_language: str
     ) -> SectionWithTranslation:
         self._logger.debug(f"Translations: {paragraphs_with_translation}")
         # もしPargraphsが空の場合は、空のSectionWithTranslationを返す
@@ -168,13 +171,16 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         )
 
     def translate_paragraphs(
-        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str | None,
+        target_language: str,
     ) -> List[ParagraphWithTranslation]:
         """Translate section
 
         Args:
             section (Section): Section to translate
-            source_language (str): Source language
+            source_language (str | None): Source language(None means auto translate)
             target_language (str): Target language
 
         Returns:
@@ -189,7 +195,10 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         return paragraphs_with_translation
 
     def translate_section(
-        self, section: Section, source_language: str, target_language: str
+        self,
+        section: Section,
+        source_language: str | None,
+        target_language: str,
     ) -> SectionWithTranslation:
         if len(section.paragraphs) <= 0:
             return SectionWithTranslation(

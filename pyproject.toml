@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ocr_module"
-version = "0.2.8"
+version = "0.2.9"
 description = "OCRと翻訳機能を提供するPythonモジュール"
 readme = "README.md"
 requires-python = ">=3.8"

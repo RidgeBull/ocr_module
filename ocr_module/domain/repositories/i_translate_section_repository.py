@@ -12,14 +12,14 @@ from ocr_module.domain.entities import (
 class ITranslateSectionRepository(ABC):
     @abstractmethod
     def translate_section(
-        self, section: Section, source_language: str, target_language: str
+        self, section: Section, source_language: str | None, target_language: str
     ) -> SectionWithTranslation:
         """
         セクションを翻訳する
 
         Args:
             section (Section): セクション
-            source_language (str): ソース言語
+            source_language (str | None): ソース言語(Noneの場合は自動翻訳)
             target_language (str): ターゲット言語
 
         Returns:
@@ -31,7 +31,7 @@ class ITranslateSectionRepository(ABC):
     def translate_section_with_formula_id(
         self,
         section: Section,
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> SectionWithTranslation:
         """
@@ -39,7 +39,7 @@ class ITranslateSectionRepository(ABC):
 
         Args:
             section (Section): セクション
-            source_language (str): ソース言語
+            source_language (str | None): ソース言語(Noneの場合は自動翻訳)
             target_language (str): ターゲット言語
 
         Returns:
@@ -51,7 +51,7 @@ class ITranslateSectionRepository(ABC):
     def translate_paragraphs_with_formula_id(
         self,
         paragraphs: List[Paragraph],
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> List[ParagraphWithTranslation]:
         """
@@ -59,7 +59,7 @@ class ITranslateSectionRepository(ABC):
 
         Args:
             paragraphs (List[Paragraph]): パラグラフ
-            source_language (str): ソース言語
+            source_language (str | None): ソース言語(Noneの場合は自動翻訳)
             target_language (str): ターゲット言語
 
         Returns:
@@ -71,7 +71,7 @@ class ITranslateSectionRepository(ABC):
     def translate_paragraphs(
         self,
         paragraphs: List[Paragraph],
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> List[ParagraphWithTranslation]:
         """
@@ -79,7 +79,7 @@ class ITranslateSectionRepository(ABC):
 
         Args:
             paragraphs (List[Paragraph]): パラグラフ
-            source_language (str): ソース言語
+            source_language (str | None): ソース言語(Noneの場合は自動翻訳)
             target_language (str): ターゲット言語
 
         Returns:

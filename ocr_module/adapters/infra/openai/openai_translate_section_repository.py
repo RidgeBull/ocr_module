@@ -44,7 +44,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     @staticmethod
     def build_batch_translate_request(
         paragraphs: List[Paragraph],
-        source_language: str,
+        source_language: str | None,
         target_language: str,
         context: str = None,
     ) -> List[dict[str, str]]:
@@ -53,7 +53,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
 
         Args:
             paragraphs (List[TextParagraph]): List of paragraphs to translate
-            source_language (str): Source language
+            source_language (str | None): Source language(None means auto translate)
             target_language (str): Target language
 
         Returns:
@@ -66,6 +66,8 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                 for paragraph in paragraphs
             ]
         )
+        if source_language is None:
+            source_language = "automatically detect the source language and"
         # build translate request
         messages = [
             {
@@ -90,7 +92,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     @staticmethod
     def build_batch_translate_with_formula_id_request(
         paragraphs: List[Paragraph],
-        source_language: str,
+        source_language: str | None,
         target_language: str,
         context: str = None,
     ) -> List[dict[str, str]]:
@@ -99,7 +101,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
 
         Args:
             paragraphs (List[Paragraph]): List of paragraphs to translate
-            source_language (str): Source language
+            source_language (str | None): Source language(None means auto translate)
             target_language (str): Target language
 
         Returns:
@@ -111,6 +113,8 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                 for paragraph in paragraphs
             ]
         )
+        if source_language is None:
+            source_language = "automatically detect the source language and"
         messages = [
             {
                 "role": "system",
@@ -177,7 +181,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         raise Exception("Failed to translate")
 
     def translate_paragraphs(
-        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str | None,
+        target_language: str,
     ) -> List[ParagraphWithTranslation]:
         con_len = sum([p.content_length() for p in paragraphs])
         self.logger.debug(
@@ -203,7 +210,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         return paragraphs_with_translation
 
     def translate_section(
-        self, section: Section, source_language: str, target_language: str
+        self,
+        section: Section,
+        source_language: str | None,
+        target_language: str,
     ) -> SectionWithTranslation:
         self.logger.debug(f"Start to translate section {section}")
         paragraphs_with_translation = self.translate_paragraphs(
@@ -222,7 +232,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         )
 
     def translate_paragraphs_with_formula_id(
-        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str | None,
+        target_language: str,
     ) -> List[ParagraphWithTranslation]:
         con_len = sum([p.content_length() for p in paragraphs])
         self.logger.debug(
@@ -248,7 +261,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         return paragraphs_with_translation
 
     def translate_section_with_formula_id(
-        self, section: Section, source_language: str, target_language: str
+        self,
+        section: Section,
+        source_language: str | None,
+        target_language: str,
     ) -> SectionWithTranslation:
         paragraphs_with_translation = self.translate_paragraphs_with_formula_id(
             section.paragraphs, source_language, target_language, self.context

@@ -59,14 +59,14 @@ class OpenAITranslateClient:
     async def translate_document(
         self,
         document: Document,
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> TranslatedDocument:
         """OCR結果のDocumentを翻訳する
 
         Args:
             document (Document): OCR結果
-            source_language (str): 翻訳元の言語
+            source_language (str | None): 翻訳元の言語(None means auto translate)
             target_language (str): 翻訳先の言語
 
         Returns:
@@ -103,14 +103,14 @@ class AzureOpenAITranslateClient:
     async def translate_document(
         self,
         document: Document,
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> TranslatedDocument:
         """Azure OpenAIを使用してDocumentを翻訳する
 
         Args:
             document (Document): OCR結果
-            source_language (str): 翻訳元の言語
+            source_language (str | None): 翻訳元の言語(None means auto translate)
             target_language (str): 翻訳先の言語
 
         Returns:
@@ -147,14 +147,14 @@ class DeepLTranslateClient:
     async def translate_document(
         self,
         document: Document,
-        source_language: str,
+        source_language: str | None,
         target_language: str,
     ) -> TranslatedDocument:
         """DeepLを使用してDocumentを翻訳する
 
         Args:
             document (Document): OCR結果
-            source_language (str): 翻訳元の言語
+            source_language (str | None): 翻訳元の言語(None means auto translate)
             target_language (str): 翻訳先の言語
 
         Returns:
