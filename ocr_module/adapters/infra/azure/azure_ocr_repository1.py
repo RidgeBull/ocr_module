@@ -45,6 +45,20 @@ def _get_bounding_box(polygon: List[float]) -> Tuple[float, float, float, float]
         max(y_coordinates),
     )
 
+def _convert_pixel_to_inch(pixel_width: float, pixel_height: float, unit: str) -> Tuple[float, float]:
+    """ピクセルをインチに変換する
+
+    Args:
+        pixel_width (float): ピクセル
+        pixel_height (float): ピクセル
+        unit (str): 単位
+    """
+    if unit == "pixel":
+        return pixel_width / 96, pixel_height / 96
+    elif unit == "inch":
+        return pixel_width, pixel_height
+    else:
+        raise ValueError(f"Invalid unit: {unit}")
 
 class AzureOCRRepository(IOCRRepository):
     def __init__(self, image_extractor: IImageExtractorRepository):
@@ -147,7 +161,7 @@ class AzureOCRRepository(IOCRRepository):
             # ページの基本情報を記録
             page_logger.debug(f"=== Page {page_number} Analysis ===")
             page_logger.debug(
-                f"Page size: {page.width or 0.0}x{page.height or 0.0} inches\n"
+                f"Page size: {page.width or 0.0}[{page.unit}]x{page.height or 0.0}[{page.unit}] inches\n"
             )
             if page.formulas is not None:
                 for formula in page.formulas:
@@ -183,10 +197,12 @@ class AzureOCRRepository(IOCRRepository):
                     f"Content: {paragraph.content}"
                 )
 
+            # ページサイズをインチに変換
+            page_size = _convert_pixel_to_inch(page.width or 0.0, page.height or 0.0, page.unit or "pixel")
             # ページエンティティの作成
             page_entity = Page(
-                width=page.width or 0.0,
-                height=page.height or 0.0,
+                width=page_size[0],
+                height=page_size[1],
                 formulas=formulas_in_page[page_number],
                 page_number=page_number,
                 paragraphs=paragraphs_in_page[page_number],
