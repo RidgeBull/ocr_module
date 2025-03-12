@@ -47,7 +47,7 @@ class OpenAITranslateClient:
     def __init__(
         self,
         model: str = "gpt-4o-2024-11-20",
-        context: str = None,
+        context: str | None = None,
     ):
         self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
             translate_section_repository=OpenAITranslateSectionRepository(
@@ -136,7 +136,7 @@ class AzureOpenAITranslateClient:
 
 
 class DeepLTranslateClient:
-    def __init__(self, glossary_id: str = None):
+    def __init__(self, glossary_id: str | None = None):
         self._translate_section_usecase = TranslateSectionFormulaIdUseCase(
             translate_section_repository=DeepLTranslateSectionRepository(
                 glossary_id=glossary_id

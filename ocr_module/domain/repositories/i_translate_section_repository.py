@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict, Any
+from dataclasses import dataclass
 
 from ocr_module.domain.entities import (
     Paragraph,
@@ -8,12 +9,17 @@ from ocr_module.domain.entities import (
     SectionWithTranslation,
 )
 
+@dataclass
+class TranslationResult:
+    translation: SectionWithTranslation
+    usage_stats: Dict[str, Any]
+
 
 class ITranslateSectionRepository(ABC):
     @abstractmethod
     def translate_section(
         self, section: Section, source_language: str | None, target_language: str
-    ) -> SectionWithTranslation:
+    ) -> TranslationResult:
         """
         セクションを翻訳する
 
@@ -23,7 +29,7 @@ class ITranslateSectionRepository(ABC):
             target_language (str): ターゲット言語
 
         Returns:
-            SectionWithTranslation: 翻訳されたセクション
+            TranslationResult: 翻訳されたセクションと使用統計情報
         """
         raise NotImplementedError
 
@@ -33,7 +39,7 @@ class ITranslateSectionRepository(ABC):
         section: Section,
         source_language: str | None,
         target_language: str,
-    ) -> SectionWithTranslation:
+    ) -> TranslationResult:
         """
         セクションを翻訳する
 
@@ -43,7 +49,7 @@ class ITranslateSectionRepository(ABC):
             target_language (str): ターゲット言語
 
         Returns:
-            SectionWithTranslation: 翻訳されたセクション
+            TranslationResult: 翻訳されたセクションと使用統計情報
         """
         raise NotImplementedError
 

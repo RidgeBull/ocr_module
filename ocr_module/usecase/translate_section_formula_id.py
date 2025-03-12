@@ -64,6 +64,7 @@ class TranslateSectionFormulaIdUseCase:
             target_language (str): 翻訳先の言語
         """
         LIMIT = 1500
+
         async def get_result_task(section: Section) -> SectionWithTranslation:
             # logging
             start_time = time.time()

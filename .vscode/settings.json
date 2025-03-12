@@ -1,0 +1,14 @@
+{
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSaveMode": "modifications",
+    "editor.formatOnSaveOptions": {
+        "tabSize": 4,
+        "insertSpaces": true
+    },
+    "python.autoComplete.addBrackets": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "autoDocstring.docstringFormat": "google",
+    "autoDocstring.generateDocstringOnEnter": true,
+    "python.analysis.completeFunctionParens": true
+}

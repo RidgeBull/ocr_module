@@ -20,7 +20,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
         client: OpenAI = OpenAI(api_key=os.environ["OPENAI_API_KEY"]),
-        context: str = None,
+        context: str | None = None,
         model: str = "gpt-4o-2024-11-20",
         retry_limit: int = 3,
         retry_delay: int = 10,
@@ -173,6 +173,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                 return {
                     "status": "success",
                     "data": translated_text,
+                    "total_tokens": response.usage.total_tokens,
                 }
             except Exception as e:
                 retry_count += 1

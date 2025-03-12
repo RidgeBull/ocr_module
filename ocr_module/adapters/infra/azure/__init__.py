@@ -1,2 +1,2 @@
-from .azure_ocr_repository1 import AzureOCRRepository
+from .azure_ocr_repository import AzureOCRRepository
 from .azure_openai_translate_section_repository import AzureOpenAITranslateSectionRepository

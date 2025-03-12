@@ -17,7 +17,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
         retry_limit: int = 3,
-        glossary_id: str = None,
+        glossary_id: str | None = None,
     ):
         deepl.http_client.max_network_retries = retry_limit
         self._client = deepl.Translator(auth_key=os.environ["DEEPL_API_KEY"])
