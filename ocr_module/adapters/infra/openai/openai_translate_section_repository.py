@@ -1,7 +1,7 @@
 import os
 import time
 from logging import INFO, StreamHandler, getLogger
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from openai import OpenAI
 
@@ -10,6 +10,7 @@ from ocr_module.domain.entities import (
     ParagraphWithTranslation,
     Section,
     SectionWithTranslation,
+    TranslationUsageStatsConfig,
 )
 from ocr_module.domain.repositories.i_translate_section_repository import (
     ITranslateSectionRepository,
@@ -46,7 +47,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-        context: str = None,
+        context: str | None = None,
     ) -> List[dict[str, str]]:
         """
         Build a batch translate request for OpenAI API
@@ -94,7 +95,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-        context: str = None,
+        context: str | None = None,
     ) -> List[dict[str, str]]:
         """
         Build a batch translate request for OpenAI API
@@ -173,7 +174,12 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                 return {
                     "status": "success",
                     "data": translated_text,
-                    "total_tokens": response.usage.total_tokens,
+                    "input_tokens": (
+                        response.usage.prompt_tokens if response.usage else 0
+                    ),
+                    "output_tokens": (
+                        response.usage.completion_tokens if response.usage else 0
+                    ),
                 }
             except Exception as e:
                 retry_count += 1
@@ -186,7 +192,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-    ) -> List[ParagraphWithTranslation]:
+    ) -> Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]:
         con_len = sum([p.content_length() for p in paragraphs])
         self.logger.debug(
             f"Start to translate {len(paragraphs)} paragraphs of {con_len:,} chars"
@@ -197,6 +203,11 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         response = self._request_translate(messages)
         translations = self.parse_batch_translate_response(response["data"])
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
+        # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
+        usage_stats = TranslationUsageStatsConfig(
+            input_token_count=response["input_tokens"],
+            output_token_count=response["output_tokens"],
+        )
         for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(
                 ParagraphWithTranslation(
@@ -208,28 +219,34 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     page_number=paragraph.page_number,
                 )
             )
-        return paragraphs_with_translation
+            # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
+            usage_stats.input_character_count += len(paragraph.content)
+            usage_stats.output_character_count += len(translation)
+        return paragraphs_with_translation, usage_stats
 
     def translate_section(
         self,
         section: Section,
         source_language: str | None,
         target_language: str,
-    ) -> SectionWithTranslation:
+    ) -> Tuple[SectionWithTranslation, TranslationUsageStatsConfig]:
         self.logger.debug(f"Start to translate section {section}")
-        paragraphs_with_translation = self.translate_paragraphs(
+        paragraphs_with_translation, usage_stats = self.translate_paragraphs(
             section.paragraphs,
             source_language,
             target_language,
         )
-        return SectionWithTranslation(
-            section_id=section.section_id,
-            paragraphs=paragraphs_with_translation,
-            paragraph_ids=section.paragraph_ids,
-            table_ids=section.table_ids,
-            figure_ids=section.figure_ids,
-            tables=section.tables,
-            figures=section.figures,
+        return (
+            SectionWithTranslation(
+                section_id=section.section_id,
+                paragraphs=paragraphs_with_translation,
+                paragraph_ids=section.paragraph_ids,
+                table_ids=section.table_ids,
+                figure_ids=section.figure_ids,
+                tables=section.tables,
+                figures=section.figures,
+            ),
+            usage_stats,
         )
 
     def translate_paragraphs_with_formula_id(
@@ -237,7 +254,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-    ) -> List[ParagraphWithTranslation]:
+    ) -> Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]:
         con_len = sum([p.content_length() for p in paragraphs])
         self.logger.debug(
             f"Start to translate {len(paragraphs)} paragraphs of {con_len:,} chars"
@@ -247,6 +264,11 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         )
         response = self._request_translate(messages)
         translations = self.parse_batch_translate_response(response["data"])
+        # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
+        usage_stats = TranslationUsageStatsConfig(
+            input_token_count=response["input_tokens"],
+            output_token_count=response["output_tokens"],
+        )
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(
@@ -259,23 +281,29 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     page_number=paragraph.page_number,
                 )
             )
-        return paragraphs_with_translation
+            # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
+            usage_stats.input_character_count += len(paragraph.content)
+            usage_stats.output_character_count += len(translation)
+        return paragraphs_with_translation, usage_stats
 
     def translate_section_with_formula_id(
         self,
         section: Section,
         source_language: str | None,
         target_language: str,
-    ) -> SectionWithTranslation:
-        paragraphs_with_translation = self.translate_paragraphs_with_formula_id(
-            section.paragraphs, source_language, target_language, self.context
+    ) -> Tuple[SectionWithTranslation, TranslationUsageStatsConfig]:
+        paragraphs_with_translation, usage_stats = self.translate_paragraphs_with_formula_id(
+            section.paragraphs, source_language, target_language
         )
-        return SectionWithTranslation(
-            section_id=section.section_id,
-            paragraphs=paragraphs_with_translation,
-            paragraph_ids=section.paragraph_ids,
-            table_ids=section.table_ids,
-            figure_ids=section.figure_ids,
-            tables=section.tables,
-            figures=section.figures,
+        return (
+            SectionWithTranslation(
+                section_id=section.section_id,
+                paragraphs=paragraphs_with_translation,
+                paragraph_ids=section.paragraph_ids,
+                table_ids=section.table_ids,
+                figure_ids=section.figure_ids,
+                tables=section.tables,
+                figures=section.figures,
+            ),
+            usage_stats,
         )
