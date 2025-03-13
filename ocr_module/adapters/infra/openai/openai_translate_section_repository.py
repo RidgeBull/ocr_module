@@ -220,8 +220,6 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                 )
             )
             # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
-            usage_stats.input_character_count += len(paragraph.content)
-            usage_stats.output_character_count += len(translation)
         return paragraphs_with_translation, usage_stats
 
     def translate_section(
@@ -282,8 +280,6 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                 )
             )
             # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
-            usage_stats.input_character_count += len(paragraph.content)
-            usage_stats.output_character_count += len(translation)
         return paragraphs_with_translation, usage_stats
 
     def translate_section_with_formula_id(

@@ -7,8 +7,7 @@ class TranslationUsageStatsConfig:
         model_name (str): Model name used for translation
         version (str): Version of the model used for translation
         api_endpoint (str): API endpoint used for translation
-        input_character_count (int): Input character count used for translation
-        output_character_count (int): Output character count used for translation
+        billed_character_count (int): Billed character count used for translation
         input_token_count (int): Input token count used for translation
         output_token_count (int): Output token count used for translation
 
@@ -16,16 +15,14 @@ class TranslationUsageStatsConfig:
         model_name (str): Model name used for translation
         version (str): Version of the model used for translation
         api_endpoint (str): API endpoint used for translation
-        input_character_count (int): Input character count used for translation
-        output_character_count (int): Output character count used for translation
+        billed_character_count (int): Billed character count used for translation
         input_token_count (int): Input token count used for translation
         output_token_count (int): Output token count used for translation
     """
     model_name: str = ""
     version: str = ""
     api_endpoint: str = ""
-    input_character_count: int = 0
-    output_character_count: int = 0
+    billed_character_count: int = 0
     input_token_count: int = 0
     output_token_count: int = 0
 
@@ -34,8 +31,7 @@ class TranslationUsageStatsConfig:
             model_name=self.model_name,
             version=self.version,
             api_endpoint=self.api_endpoint,
-            input_character_count=self.input_character_count,
-            output_character_count=self.output_character_count,
+            billed_character_count=self.billed_character_count,
             input_token_count=self.input_token_count,
             output_token_count=self.output_token_count,
         )
