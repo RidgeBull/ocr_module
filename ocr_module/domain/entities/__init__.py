@@ -50,13 +50,13 @@ class Document:
 class TranslatedDocument:
     pages: List[PageWithTranslation]
     sections: List[SectionWithTranslation]
-    usage_stats: Dict[str, Any] = field(default_factory=dict)
+    usage_stats: TranslationUsageStatsConfig = field(default_factory=TranslationUsageStatsConfig)
 
     def to_dict(self) -> dict[str, Any]:
         return dict(
             pages=[page.to_dict() for page in self.pages],
             sections=[section.to_dict() for section in self.sections],
-            usage_stats=self.usage_stats,
+            usage_stats=self.usage_stats.to_dict(),
         )
 
     def to_json(self) -> str:

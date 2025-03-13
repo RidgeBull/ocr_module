@@ -13,7 +13,6 @@ from ..usecase import (
     GetTranslatedPageUseCase,
     TranslateSectionFormulaIdUseCase,
 )
-
 from openai import AzureOpenAI, OpenAI
 
 
@@ -78,7 +77,7 @@ class OpenAITranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections = await self._translate_section_usecase.execute_async(
+        translated_sections, usage_stats = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -93,6 +92,7 @@ class OpenAITranslateClient:
         return TranslatedDocument(
             pages=translated_pages,
             sections=translated_sections,
+            usage_stats=usage_stats,
         )
 
 
@@ -133,7 +133,7 @@ class AzureOpenAITranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections = await self._translate_section_usecase.execute_async(
+        translated_sections, usage_stats = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -148,6 +148,7 @@ class AzureOpenAITranslateClient:
         return TranslatedDocument(
             pages=translated_pages,
             sections=translated_sections,
+            usage_stats=usage_stats,
         )
 
 
@@ -178,7 +179,7 @@ class DeepLTranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections = await self._translate_section_usecase.execute_async(
+        translated_sections, usage_stats = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -193,6 +194,7 @@ class DeepLTranslateClient:
         return TranslatedDocument(
             pages=translated_pages,
             sections=translated_sections,
+            usage_stats=usage_stats,
         )
 
 
