@@ -19,12 +19,8 @@ from ocr_module.domain.repositories.i_translate_section_repository import (
 class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
-        client: AzureOpenAI = AzureOpenAI(
-            api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-            api_version="2024-07-01-preview",
-        ),
-        model: str = "gpt-4o-2024-11-20",
+        client: AzureOpenAI,
+        model: str,
         retry_limit: int = 3,
         retry_delay: int = 10,
     ):
