@@ -1,12 +1,13 @@
 import os
 from logging import INFO, getLogger
-from typing import List
+from typing import List, Tuple
 
 from ocr_module.domain.entities import (
     Paragraph,
     ParagraphWithTranslation,
     Section,
     SectionWithTranslation,
+    TranslationUsageStatsConfig,
 )
 from ocr_module.domain.repositories import ITranslateSectionRepository
 
@@ -16,11 +17,12 @@ import deepl
 class DeepLTranslateSectionRepository(ITranslateSectionRepository):
     def __init__(
         self,
+        api_key: str,
         retry_limit: int = 3,
         glossary_id: str | None = None,
     ):
         deepl.http_client.max_network_retries = retry_limit
-        self._client = deepl.Translator(auth_key=os.environ["DEEPL_API_KEY"])
+        self._client = deepl.Translator(auth_key=api_key)
         self._logger = getLogger(__name__)
         self._logger.setLevel(INFO)
         self._glossary_id = glossary_id
@@ -30,7 +32,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-    ) -> List[ParagraphWithTranslation]:
+    ) -> Tuple[List[ParagraphWithTranslation], int]:
         """Batch translation with formula placeholder
 
         Args:
@@ -57,6 +59,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         except Exception as e:
             self._logger.error(f"Error Translating with DeepL: {e}", exc_info=True)
             raise e
+        billed_character_count = 0
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         for i, paragraph in enumerate(paragraphs):
             paragraph_with_translation = ParagraphWithTranslation(
@@ -67,15 +70,16 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
                 page_number=paragraph.page_number,
                 translation=translated_texts[i].text,
             )
+            billed_character_count += translated_texts[i].billed_characters
             paragraphs_with_translation.append(paragraph_with_translation)
-        return paragraphs_with_translation
+        return paragraphs_with_translation, billed_character_count
 
     def _batch_translation(
         self,
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-    ) -> List[ParagraphWithTranslation]:
+    ) -> Tuple[List[ParagraphWithTranslation], int]:
         """Batch translation
 
         Args:
@@ -97,6 +101,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
             self._logger.error(f"Error Translating with DeepL: {e}", exc_info=True)
             raise e
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
+        billed_character_count = 0
         for i, paragraph in enumerate(paragraphs):
             paragraph_with_translation = ParagraphWithTranslation(
                 paragraph_id=paragraph.paragraph_id,
@@ -106,15 +111,16 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
                 page_number=paragraph.page_number,
                 translation=translated_texts[i].text,
             )
+            billed_character_count += translated_texts[i].billed_characters
             paragraphs_with_translation.append(paragraph_with_translation)
-        return paragraphs_with_translation
+        return paragraphs_with_translation, billed_character_count
 
     def translate_paragraphs_with_formula_id(
         self,
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-    ) -> List[ParagraphWithTranslation]:
+    ) -> Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]:
         """Translate section with formula placeholder
 
         Args:
@@ -123,51 +129,64 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
             target_language (str): Target language
 
         Returns:
-            SectionWithTranslation: Section with translation
+            Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]: Section with translation
         """
 
-        paragraphs_with_translation = self._batch_translation_with_formula_placeholder(
-            paragraphs, source_language, target_language
+        paragraphs_with_translation, billed_character_count = (
+            self._batch_translation_with_formula_placeholder(
+                paragraphs, source_language, target_language
+            )
         )
-        return paragraphs_with_translation
+        usage_stats = TranslationUsageStatsConfig(
+            billed_character_count=billed_character_count,
+        )
+        return paragraphs_with_translation, usage_stats
 
     def translate_section_with_formula_id(
         self, section: Section, source_language: str | None, target_language: str
-    ) -> SectionWithTranslation:
-        self._logger.debug(f"Translations: {paragraphs_with_translation}")
+    ) -> Tuple[SectionWithTranslation, TranslationUsageStatsConfig]:
         # もしPargraphsが空の場合は、空のSectionWithTranslationを返す
         if len(section.paragraphs) <= 0:
-            return SectionWithTranslation(
+            usage_stats = TranslationUsageStatsConfig()
+            return (
+                SectionWithTranslation(
+                    section_id=section.section_id,
+                    paragraphs=[
+                        ParagraphWithTranslation(
+                            paragraph_id=paragraph.paragraph_id,
+                            role=paragraph.role,
+                            content=paragraph.content,
+                            bbox=paragraph.bbox,
+                            page_number=paragraph.page_number,
+                            translation=paragraph.content,
+                        )
+                        for paragraph in section.paragraphs
+                    ],
+                    paragraph_ids=section.paragraph_ids,
+                    table_ids=section.table_ids,
+                    figure_ids=section.figure_ids,
+                    tables=section.tables,
+                    figures=section.figures,
+                ),
+                usage_stats,
+            )
+
+        paragraphs_with_translation, usage_stats = (
+            self.translate_paragraphs_with_formula_id(
+                section.paragraphs, source_language, target_language
+            )
+        )
+        return (
+            SectionWithTranslation(
                 section_id=section.section_id,
-                paragraphs=[
-                    ParagraphWithTranslation(
-                        paragraph_id=paragraph.paragraph_id,
-                        role=paragraph.role,
-                        content=paragraph.content,
-                        bbox=paragraph.bbox,
-                        page_number=paragraph.page_number,
-                        translation=paragraph.content,
-                    )
-                    for paragraph in section.paragraphs
-                ],
+                paragraphs=paragraphs_with_translation,
                 paragraph_ids=section.paragraph_ids,
                 table_ids=section.table_ids,
                 figure_ids=section.figure_ids,
                 tables=section.tables,
                 figures=section.figures,
-            )
-
-        paragraphs_with_translation = self.translate_paragraphs_with_formula_id(
-            section.paragraphs, source_language, target_language
-        )
-        return SectionWithTranslation(
-            section_id=section.section_id,
-            paragraphs=paragraphs_with_translation,
-            paragraph_ids=section.paragraph_ids,
-            table_ids=section.table_ids,
-            figure_ids=section.figure_ids,
-            tables=section.tables,
-            figures=section.figures,
+            ),
+            usage_stats,
         )
 
     def translate_paragraphs(
@@ -175,7 +194,7 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         paragraphs: List[Paragraph],
         source_language: str | None,
         target_language: str,
-    ) -> List[ParagraphWithTranslation]:
+    ) -> Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]:
         """Translate section
 
         Args:
@@ -186,25 +205,29 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
         Returns:
             List[ParagraphWithTranslation]: List of paragraphs with translation
         """
-        self._logger.debug(f"Start to translate section {section}")
         # もしPargraphsが空の場合は、空のSectionWithTranslationを返す
 
-        paragraphs_with_translation = self._batch_translation(
+        paragraphs_with_translation, billed_character_count = self._batch_translation(
             paragraphs, source_language, target_language
         )
-        return paragraphs_with_translation
+        usage_stats = TranslationUsageStatsConfig(
+            billed_character_count=billed_character_count,
+        )
+        return paragraphs_with_translation, usage_stats
 
     def translate_section(
         self,
         section: Section,
         source_language: str | None,
         target_language: str,
-    ) -> SectionWithTranslation:
+    ) -> Tuple[SectionWithTranslation, TranslationUsageStatsConfig]:
         if len(section.paragraphs) <= 0:
-            return SectionWithTranslation(
-                section_id=section.section_id,
-                paragraphs=[
-                    ParagraphWithTranslation(
+            usage_stats = TranslationUsageStatsConfig()
+            return (
+                SectionWithTranslation(
+                    section_id=section.section_id,
+                    paragraphs=[
+                        ParagraphWithTranslation(
                         paragraph_id=paragraph.paragraph_id,
                         role=paragraph.role,
                         content=paragraph.content,
@@ -214,22 +237,27 @@ class DeepLTranslateSectionRepository(ITranslateSectionRepository):
                     )
                     for paragraph in section.paragraphs
                 ],
+                    paragraph_ids=section.paragraph_ids,
+                    table_ids=section.table_ids,
+                    figure_ids=section.figure_ids,
+                    tables=section.tables,
+                    figures=section.figures,
+                ),
+                usage_stats,
+            )
+        paragraphs_with_translation, usage_stats = self.translate_paragraphs(
+            section.paragraphs, source_language, target_language
+        )
+        self._logger.debug(f"Translations: {paragraphs_with_translation}")
+        return (
+            SectionWithTranslation(
+                section_id=section.section_id,
+                paragraphs=paragraphs_with_translation,
                 paragraph_ids=section.paragraph_ids,
                 table_ids=section.table_ids,
                 figure_ids=section.figure_ids,
                 tables=section.tables,
                 figures=section.figures,
-            )
-        paragraphs_with_translation = self.translate_paragraphs(
-            section.paragraphs, source_language, target_language
-        )
-        self._logger.debug(f"Translations: {paragraphs_with_translation}")
-        return SectionWithTranslation(
-            section_id=section.section_id,
-            paragraphs=paragraphs_with_translation,
-            paragraph_ids=section.paragraph_ids,
-            table_ids=section.table_ids,
-            figure_ids=section.figure_ids,
-            tables=section.tables,
-            figures=section.figures,
+            ),
+            usage_stats,
         )
