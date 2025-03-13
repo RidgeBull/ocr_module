@@ -13,6 +13,7 @@ from .page_models import (
     PageWithTranslation,
 )
 from .section_models import Section, SectionWithTranslation
+from .usage_model import TranslationUsageStatsConfig, OCRUsageStatsConfig
 
 __all__ = [
     "Formula",
@@ -25,6 +26,8 @@ __all__ = [
     "PageWithTranslation",
     "Section",
     "SectionWithTranslation",
+    "TranslationUsageStatsConfig",
+    "OCRUsageStatsConfig",
 ]
 
 
