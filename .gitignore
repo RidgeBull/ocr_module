@@ -3,3 +3,7 @@
 paragraph.log
 logs/
 .venv
+tests/
+Dockerfile
+Dockerfile.dev
+docker-compose.yml

@@ -1,4 +1,10 @@
-from .framework.resolver import AzureOcrClient, GeneratePDFClient, OpenAITranslateClient
+from .framework.resolver import (
+    AzureOcrClient,
+    GeneratePDFClient,
+    OpenAITranslateClient,
+    AzureOpenAITranslateClient,
+    DeepLTranslateClient,
+)
 from ocr_module.domain.entities import (
     Formula,
     DisplayFormula,
@@ -10,6 +16,8 @@ from ocr_module.domain.entities import (
     PageWithTranslation,
     Section,
     SectionWithTranslation,
+    Document,
+    TranslatedDocument,
 )
 
 __all__ = [
@@ -23,4 +31,6 @@ __all__ = [
     "PageWithTranslation",
     "Section",
     "SectionWithTranslation",
+    "Document",
+    "TranslatedDocument",
 ]

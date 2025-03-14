@@ -36,14 +36,14 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # paragraphを処理する際のロガー
         self.paragraph_logger = getLogger("paragraph")
         # すでに設定されているハンドラを削除して、新しいハンドラを設定してファイルに出力する
-        for handler in self.paragraph_logger.handlers:
-            self.paragraph_logger.removeHandler(handler)
-        # modeを'w'に設定して上書きモードにする
-        handler = logging.FileHandler("paragraph.log", mode="w")
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        )
-        self.paragraph_logger.addHandler(handler)
+        # for handler in self.paragraph_logger.handlers:
+        #     self.paragraph_logger.removeHandler(handler)
+        # # modeを'w'に設定して上書きモードにする
+        # handler = logging.FileHandler("paragraph.log", mode="w")
+        # handler.setFormatter(
+        #     logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        # )
+        # self.paragraph_logger.addHandler(handler)
         # ログレベルをDEBUGに設定
         self.paragraph_logger.setLevel(logging.INFO)
 
@@ -59,7 +59,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             "right": "0in",
         }
         document = Document(geometry_options=geometry_options)
-        document.packages.append(Package("textpos"))
+        document.packages.append(Package("textpos", options=["absolute"]))
         document.packages.append(Package("amsmath"))
         document.packages.append(Package("amssymb"))
         document.packages.append(Package("amsfonts"))
@@ -98,7 +98,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # ドキュメントにパラグラフを挿入
         for paragraph in paragraphs:
             if paragraph.role == "sectionHeading":
-                self.paragraph_logger.info(f"sectionHeading: {paragraph.content}")
+                self.paragraph_logger.debug(f"sectionHeading: {paragraph.content}")
                 document = self.insert_section_heading_paragraph(paragraph, document)
             elif paragraph.role == "footnote":
                 document = self.insert_footnote_paragraph(paragraph, document)
@@ -129,7 +129,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         try:
             document.generate_pdf(output_path, clean_tex=False)
         except Exception as e:
-            self.logger.error(f"Error generating PDF: {e}")
+            self.logger.warning(f"Error generating PDF: {e}")
             raise e
 
     def generate_pdf_with_translation(
@@ -146,7 +146,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             "right": "0in",
         }
         document = Document(geometry_options=geometry_options)
-        document.packages.append(Package("textpos"))
+        document.packages.append(Package("textpos", options=["absolute"]))
         document.packages.append(Package("amsmath"))
         document.packages.append(Package("amssymb"))
         document.packages.append(Package("amsfonts"))
@@ -212,7 +212,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         try:
             document.generate_pdf(output_path, clean_tex=False)
         except Exception as e:
-            self.logger.error(f"Error generating PDF: {e}")
+            self.logger.warning(f"Error generating PDF: {e}")
             raise e
 
     def generate_pdf_with_formula_id(self, page: PageWithTranslation, output_path: str):
@@ -234,7 +234,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             "right": "0in",
         }
         document = Document(geometry_options=geometry_options)
-        document.packages.append(Package("textpos"))
+        document.packages.append(Package("textpos", options=["absolute"]))
         document.packages.append(Package("amsmath"))
         document.packages.append(Package("amssymb"))
         document.packages.append(Package("amsfonts"))
@@ -301,9 +301,13 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             output_basename = output_path
 
         try:
-            document.generate_pdf(output_basename, clean_tex=False)
+            document.generate_pdf(
+                output_basename,
+                clean_tex=False,
+                compiler_args=["-interaction=nonstopmode"],
+            )
         except Exception as e:
-            self.logger.error(f"Error generating PDF: {e}")
+            self.logger.warning(f"Error generating PDF: {e}")
             raise e
 
     def convert_paragraphs_to_latex(
@@ -319,11 +323,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         Returns:
             List[Paragraph]: LaTeX形式に変換されたパラグラフのリスト
         """
-        self.paragraph_logger.info(f"--------------------------------")
-        self.paragraph_logger.info(
+        self.paragraph_logger.debug(f"--------------------------------")
+        self.paragraph_logger.debug(
             f"page_paragraphs: {page_paragraphs} \npage_formulas: {page_formulas}"
         )
-        self.paragraph_logger.info(f"--------------------------------")
+        self.paragraph_logger.debug(f"--------------------------------")
         current_formula_index = 0
         total_formulas = len(page_formulas)
 
@@ -333,8 +337,10 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
             if num_formula <= 0:
                 continue
 
-            self.paragraph_logger.info(f"num_formula: {num_formula}")
-            self.paragraph_logger.info(f"paragraph before replace: {paragraph.content}")
+            self.paragraph_logger.debug(f"num_formula: {num_formula}")
+            self.paragraph_logger.debug(
+                f"paragraph before replace: {paragraph.content}"
+            )
 
             for i in range(num_formula):
                 if current_formula_index >= total_formulas:
@@ -354,7 +360,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     f":formula:", f"${formula.latex_value}$", 1
                 )
                 current_formula_index += 1
-            self.paragraph_logger.info(f"paragraph after replace: {paragraph.content}")
+            self.paragraph_logger.debug(f"paragraph after replace: {paragraph.content}")
             # もしまだ:formula:が残っていたらwarningを出す
             if ":formula:" in paragraph.content:
                 self.paragraph_logger.warning(
@@ -376,11 +382,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         Returns:
             List[Paragraph]: LaTeX形式に変換されたパラグラフのリスト
         """
-        self.paragraph_logger.info(f"--------------------------------")
-        self.paragraph_logger.info(
+        self.paragraph_logger.debug(f"--------------------------------")
+        self.paragraph_logger.debug(
             f"page_paragraphs_with_translation: {page_paragraphs_with_translation}"
         )
-        self.paragraph_logger.info(f"--------------------------------")
+        self.paragraph_logger.debug(f"--------------------------------")
         current_formula_index = 0
         total_formulas = len(page_formulas)
         paragraphs: List[Paragraph] = []
@@ -400,8 +406,8 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                 )
                 paragraphs.append(latex_paragraph)
                 continue
-            self.paragraph_logger.info(f"num_formula: {num_formula}")
-            self.paragraph_logger.info(
+            self.paragraph_logger.debug(f"num_formula: {num_formula}")
+            self.paragraph_logger.debug(
                 f"paragraph before replace: {paragraph_with_translation.translation}"
             )
 
@@ -419,7 +425,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                     )
                 )
                 current_formula_index += 1
-            self.paragraph_logger.info(
+            self.paragraph_logger.debug(
                 f"paragraph after replace: {paragraph_with_translation.translation}"
             )
             # もしまだ:formula:が残っていたらwarningを出す
@@ -452,27 +458,27 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         Returns:
             List[Paragraph]: LaTeX形式に変換されたパラグラフのリスト
         """
-        self.paragraph_logger.info(f"--------------------------------")
-        self.paragraph_logger.info(
+        self.paragraph_logger.debug(f"--------------------------------")
+        self.paragraph_logger.debug(
             f"page_paragraphs_with_formula_id: {page_paragraphs_with_formula_id}"
         )
-        self.paragraph_logger.info(f"--------------------------------")
+        self.paragraph_logger.debug(f"--------------------------------")
         total_formulas = len(page_formulas)
         paragraphs: List[Paragraph] = []
         formula_dict = {
             formula.formula_id: formula.latex_value for formula in page_formulas
         }
-        formula_pattern = re.compile(r"<<formula\\_(\d+)>>")
+        formula_pattern = re.compile(r"<formula\\_(\d+)/>")
         for paragraph_with_formula_id in page_paragraphs_with_formula_id:
             paragraph_with_formula_id.translation = escape_latex(
                 paragraph_with_formula_id.translation
             )
-            # <<formula_{formula_id}>>が含まれていたら
+            # <formula_{formula_id}/>が含まれていたら
             formula_ids = formula_pattern.findall(paragraph_with_formula_id.translation)
-            self.paragraph_logger.info(f"Hit formula_ids: {formula_ids}")
+            self.paragraph_logger.debug(f"Hit formula_ids: {formula_ids}")
             for formula_id in formula_ids:
                 if int(formula_id) in formula_dict:
-                    self.paragraph_logger.info(f"Replace formula_id: {formula_id}")
+                    self.paragraph_logger.debug(f"Replace formula_id: {formula_id}")
                     # もしformula_latexが\begin{array}{}を含んでいたら、不正な数式として扱う
                     if r"\begin{array}{}" in formula_dict[int(formula_id)]:
                         formula_dict[int(formula_id)] = formula_dict[
@@ -480,12 +486,12 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
                         ].replace(r"\begin{array}{}", r"\begin{array}{l}")
                     paragraph_with_formula_id.translation = (
                         paragraph_with_formula_id.translation.replace(
-                            rf"<<formula\_{formula_id}>>",
+                            rf"<formula\_{formula_id}/>",
                             f"${formula_dict[int(formula_id)]}$",
                             1,
                         )
                     )
-            self.paragraph_logger.info(
+            self.paragraph_logger.debug(
                 f"paragraph_with_formula_id.translation: {paragraph_with_formula_id.translation}"
             )
             latex_paragraph = Paragraph(
@@ -518,7 +524,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         height = bbox[3] - bbox[1]
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\tcboxfit[height={height}in,width={width}in]{{{paragraph.content}}}"
                 mp.append(NoEscape(content))
@@ -557,7 +567,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
                 mp.append(NoEscape(content))
@@ -583,7 +597,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 # 太字で挿入する
                 content = rf"\textbf{{{section_heading_paragraph.content}}}"
@@ -610,7 +628,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="b",
+                )
             ) as mp:
                 mp.append(NoEscape(footnote_paragraph.content))
         return document
@@ -618,7 +640,7 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
     def insert_header_paragraph(
         self, header_paragraph: Paragraph, document: Document
     ) -> Document:
-        print(f"header_paragraph: {header_paragraph}")
+        self.logger.debug(f"header_paragraph: {header_paragraph}")
         """ヘッダーパラグラフを挿入する
 
         Args:
@@ -637,7 +659,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # ヘッダーの中央に配置
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 mp.append(NoEscape(content))
         return document
@@ -646,7 +672,6 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
     def insert_footer_paragraph(
         footer_paragraph: Paragraph, document: Document
     ) -> Document:
-        print(f"footer_paragraph: {footer_paragraph}")
         """フッターパラグラフを挿入する"""
         bbox = footer_paragraph.bbox
         x = bbox[0]
@@ -657,7 +682,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
         # フッターの中央に配置
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="b",
+                )
             ) as mp:
                 mp.append(NoEscape(content))
         return document
@@ -692,7 +721,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
                 mp.append(NoEscape(content))
@@ -728,7 +761,11 @@ class PyLaTeXGeneratePDFRepository(IPDFGeneratorRepository):
 
         with document.create(TextBlock(width, x, y)) as block:
             with block.create(
-                MiniPage(width=NoEscape(f"{width}in"), height=NoEscape(f"{height}in"))
+                MiniPage(
+                    width=NoEscape(f"{width}in"),
+                    height=NoEscape(f"{height}in"),
+                    pos="t",
+                )
             ) as mp:
                 content = rf"\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{{{image_path}}}"
                 mp.append(NoEscape(content))

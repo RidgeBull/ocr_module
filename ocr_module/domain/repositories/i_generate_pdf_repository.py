@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
 
 from ocr_module.domain.entities import Page, PageWithTranslation
 

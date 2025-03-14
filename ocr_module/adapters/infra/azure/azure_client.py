@@ -1,5 +1,6 @@
 import os
 import time
+from logging import getLogger
 from typing import List
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
@@ -14,8 +15,9 @@ from azure.core.credentials import AzureKeyCredential
 class AzureDocumentIntelligenceClient:
     def __init__(
         self,
-        endpoint: str = os.environ["AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"],
-        key: str = os.environ["AZURE_DOCUMENT_INTELLIGENCE_KEY"],
+        endpoint: str,
+        key: str,
+        model_id: str,
     ):
         """
         Azure Document Intelligence クライアントの初期化
@@ -23,13 +25,16 @@ class AzureDocumentIntelligenceClient:
         Args:
             endpoint (str, optional): Azure Document Intelligence エンドポイント. Defaults to settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT.
             key (str, optional): Azure Document Intelligence キー. Defaults to settings.AZURE_DOCUMENT_INTELLIGENCE_KEY.
+            model_id (str, optional): Azure Document Intelligence モデルID. Defaults to settings.AZURE_DOCUMENT_INTELLIGENCE_MODEL_ID.
         """
         self.endpoint = endpoint
         self.key = key
+        self.model_id = model_id
         self.client: DocumentIntelligenceClient = DocumentIntelligenceClient(
             endpoint=self.endpoint,
             credential=AzureKeyCredential(self.key),
         )
+        self._logger = getLogger(__name__)
 
     def set_features(self, features: List[DocumentAnalysisFeature]):
         """
@@ -74,23 +79,22 @@ class AzureDocumentIntelligenceClient:
             document_bytes (bytes): 分析するドキュメントのバイト列
         """
         poller = self.client.begin_analyze_document(
-            "prebuilt-layout",
+            self.model_id,
             AnalyzeDocumentRequest(bytes_source=document_bytes),
             features=[
                 DocumentAnalysisFeature.FORMULAS,
-                DocumentAnalysisFeature.STYLE_FONT,
+                # DocumentAnalysisFeature.STYLE_FONT,
             ],
         )
         while not poller.done():
-            print("Waiting for result...")
-            time.sleep(5)
+            self._logger.debug("Waiting for result...")
         if poller.status() == "failed":
-            print("Failed!")
+            self._logger.error("Failed!")
             raise Exception("Failed to analyze document")
         else:
-            print("Done!")
+            self._logger.debug("Done!")
             result: AnalyzeResult = poller.result()
-            print("Result is ready!")
+            self._logger.debug("Result is ready!")
             return result
 
     def analyze_document_from_url(self, document_url: str) -> AnalyzeResult:
@@ -101,7 +105,7 @@ class AzureDocumentIntelligenceClient:
             document_url (str): 分析するドキュメントのURL
         """
         poller = self.client.begin_analyze_document(
-            "prebuilt-layout",
+            self.model_id,
             AnalyzeDocumentRequest(url_source=document_url),
             features=[
                 DocumentAnalysisFeature.FORMULAS,
@@ -109,7 +113,6 @@ class AzureDocumentIntelligenceClient:
             ],
         )
         while not poller.done():
-            print("Waiting for result...")
-            time.sleep(5)
+            self._logger.debug("Waiting for result...")
         result: AnalyzeResult = poller.result()
         return result

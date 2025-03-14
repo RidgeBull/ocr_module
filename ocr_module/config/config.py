@@ -15,10 +15,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def _get_env_file() -> str:
     ret = os.path.join(os.path.dirname(__file__), "../.env")
-    print("-----------------")
-    with open(ret) as f:
-        print(f.read())
-    print("-----------------")
     return ret
 
 

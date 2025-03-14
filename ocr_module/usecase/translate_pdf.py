@@ -1,18 +1,24 @@
+import copy
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging import getLogger
 from typing import List
 
+from PyPDF2 import PdfMerger
+
 from ocr_module.domain.entities import PageWithTranslation
 from ocr_module.domain.repositories import IPDFGeneratorRepository
-from PyPDF2 import PdfMerger
 
 
 class GenerateTranslatedPDFWithFormulaIdUseCase:
     def __init__(
-        self, pdf_generator_repository: IPDFGeneratorRepository, max_workers: int = 4
+        self,
+        pdf_generator_repository: IPDFGeneratorRepository,
+        error_pdf_generator_repository: IPDFGeneratorRepository,
+        max_workers: int = 5,
     ):
         self.pdf_generator_repository = pdf_generator_repository
+        self.error_pdf_generator_repository = error_pdf_generator_repository
         self.max_workers = max_workers
         self.logger = getLogger(__name__)
 
@@ -33,16 +39,17 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         doc_prefix = output_path.replace(".pdf", "")
         page_output_path = f"{doc_prefix}_{page_with_translation.page_number}.pdf"
         try:
+            page_copy = copy.deepcopy(page_with_translation)
             self.pdf_generator_repository.generate_pdf_with_formula_id(
-                page_with_translation, page_output_path
+                page=page_copy, output_path=page_output_path
             )
             return page_output_path
         except Exception as e:
-            self.logger.error(
-                f"Error processing page {page_with_translation.page_number}: {e}"
+            self.logger.warning(
+                f"Error compiling page {page_with_translation.page_number}: {e}"
             )
             # TODO: エラー処理適切にしたい。空ページか、エラーが発生したのでPDF化できませんでした、という文言のPDFを出すか
-            raise
+            raise e
 
     def _merge_pdfs(self, pdf_paths: List[str], output_path: str) -> str:
         """PDFを結合する"""
@@ -52,7 +59,12 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
         ):
             merger.append(pdf_path)
 
-        final_path = f"{output_path}.pdf"
+        if ".pdf" in output_path:
+            output_basename = output_path.replace(".pdf", "")
+        else:
+            output_basename = output_path
+
+        final_path = f"{output_basename}.pdf"
         merger.write(final_path)
         merger.close()
 
@@ -98,16 +110,25 @@ class GenerateTranslatedPDFWithFormulaIdUseCase:
                 try:
                     page_pdf_path = future.result()
                     page_pdf_paths.append(page_pdf_path)
-                    self.logger.info(f"Completed processing page {page.page_number}")
+                    self.logger.debug(f"Completed processing page {page.page_number}")
                 except Exception as e:
-                    self.logger.error(f"Failed to process page {page.page_number}: {e}")
-
+                    self.logger.warning(
+                        f"Failed to process page {page.page_number}: {e}"
+                    )
+                    page_output_path = (
+                        f"{output_path.replace('.pdf', '')}_{page.page_number}.pdf"
+                    )
+                    self.error_pdf_generator_repository.generate_pdf_with_translation(
+                        page=page, output_path=page_output_path
+                    )
+                    self.logger.debug(f"Generated error PDF at {page_output_path}")
+                    page_pdf_paths.append(page_output_path)
         # すべてのPDFを結合
         if not page_pdf_paths:
             raise Exception("No pages were successfully processed")
 
         final_path = self._merge_pdfs(page_pdf_paths, output_path)
-        self.logger.info(f"Successfully created merged PDF at {final_path}")
+        self.logger.debug(f"Successfully created merged PDF at {final_path}")
 
         # 中間ファイルを保存しない場合、ページごとのPDFを削除
         if not save_page_file:

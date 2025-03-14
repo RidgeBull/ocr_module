@@ -66,9 +66,17 @@ class DisplayFormula:
 
     @classmethod
     def from_dict(cls, data: dict) -> "DisplayFormula":
-        return cls(**data)
+        return cls(
+            formula_id=data["formula_id"],
+            latex_value=data["latex_value"],
+            bbox=data["bbox"],
+            type=data["type"],
+            page_number=data["page_number"],
+            image_data=None,  # dictからの復元時はimage_dataはNoneとする
+        )
 
 
+@dataclass
 @dataclass
 class Paragraph:
     """
@@ -106,9 +114,12 @@ class Paragraph:
             translation=self.content,
         )
 
+    def content_length(self) -> int:
+        return len(self.content or "")
+
     @classmethod
     def from_dict(cls, data: dict) -> "Paragraph":
-        return cls(**data)
+        return cls(**{k: v for k, v in data.items() if k != "image_data"})
 
 
 @dataclass
@@ -174,6 +185,7 @@ class Figure:
     bbox: Tuple[float, float, float, float]
     page_number: int
     image_data: Optional[bytes]
+    element_paragraph_ids: List[int]
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -182,7 +194,14 @@ class Figure:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Figure":
-        return cls(**data)
+        # image_dataがない場合はNoneを設定
+        return cls(
+            figure_id=data["figure_id"],
+            bbox=data["bbox"],
+            page_number=data["page_number"],
+            image_data=None,  # dictからの復元時はimage_dataはNoneとする
+            element_paragraph_ids=data["element_paragraph_ids"],
+        )
 
 
 @dataclass
@@ -204,6 +223,7 @@ class Table:
     bbox: Tuple[float, float, float, float]
     page_number: int
     image_data: Optional[bytes]
+    element_paragraph_ids: List[int]
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -212,7 +232,13 @@ class Table:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Table":
-        return cls(**data)
+        return cls(
+            table_id=data["table_id"],
+            bbox=data["bbox"],
+            page_number=data["page_number"],
+            image_data=None,  # dictからの復元時はimage_dataはNoneとする
+            element_paragraph_ids=data["element_paragraph_ids"],
+        )
 
 
 @dataclass

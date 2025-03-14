@@ -58,7 +58,7 @@ class FPDF2GeneratePDFRepository(IPDFGeneratorRepository):
 
     def _insert_section(self, pdf: FPDF, section: Section):
         if section.paragraphs:
-            self.logger.info(
+            self.logger.debug(
                 f"Inserting {len(section.paragraphs)} paragraphs in section."
             )
             for paragraph in section.paragraphs:
@@ -76,7 +76,7 @@ class FPDF2GeneratePDFRepository(IPDFGeneratorRepository):
 
         # :formula: を数式に置換
         for formula in paragraph.inline_formulas:
-            self.logger.info(f"Replacing :formula: with ${formula}$")
+            self.logger.debug(f"Replacing :formula: with ${formula}$")
             paragraph.text = paragraph.text.replace(":formula:", f"${formula}$", 1)
             self.logger.debug(f"Replaced text: {paragraph.text}")
 
@@ -88,7 +88,7 @@ class FPDF2GeneratePDFRepository(IPDFGeneratorRepository):
 
         if paragraph.inline_formulas:
             # 数式を含む場合 → matplotlib で画像化して貼り付け
-            self.logger.info(f"Inserting paragraph with formula: {paragraph.text}")
+            self.logger.debug(f"Inserting paragraph with formula: {paragraph.text}")
 
             # 数式を画像化
             url = f"https://chart.googleapis.com/chart?cht=tx&chs=200&chl={quote(paragraph.text)}"
@@ -109,7 +109,7 @@ class FPDF2GeneratePDFRepository(IPDFGeneratorRepository):
 
         else:
             # 通常のテキストだけ
-            self.logger.info(f"Inserting paragraph: {paragraph.text}")
+            self.logger.debug(f"Inserting paragraph: {paragraph.text}")
             self.logger.debug(f"Placing text at x={x_min}, y={y_min}, width={width_pt}")
             pdf.set_xy(x_min, y_min)
             pdf.multi_cell(width_pt, 14, paragraph.text)  # 行間を14ptに
