@@ -5,13 +5,24 @@ from logging import INFO, StreamHandler, getLogger
 from typing import List, Tuple
 
 from ocr_module.domain.entities import (
-    Paragraph,
-    ParagraphWithTranslation,
     Section,
     SectionWithTranslation,
     TranslationUsageStatsConfig,
 )
 from ocr_module.domain.repositories import ITranslateSectionRepository
+from dataclasses import dataclass
+
+@dataclass
+class TranslateSectionFormulaIdResult:
+    """
+    Sectionの内容を翻訳する（数式ID付き）の結果
+
+    Attributes:
+        sections (List[SectionWithTranslation]): 翻訳されたSectionWithTranslationのリスト
+        usage_stats (TranslationUsageStatsConfig): 使用統計情報
+    """
+    sections: List[SectionWithTranslation]
+    usage_stats: TranslationUsageStatsConfig
 
 
 class TranslateSectionFormulaIdUseCase:
@@ -29,7 +40,7 @@ class TranslateSectionFormulaIdUseCase:
         sections: List[Section],
         source_language: str | None,
         target_language: str,
-    ) -> Tuple[List[SectionWithTranslation], TranslationUsageStatsConfig]:
+    ) -> TranslateSectionFormulaIdResult:
         """Sectionの内容を翻訳する（数式ID付き）
 
         Args:
@@ -38,7 +49,7 @@ class TranslateSectionFormulaIdUseCase:
             target_language (str): 翻訳先の言語
 
         Returns:
-            List[SectionWithTranslation]: 翻訳されたSectionWithTranslationのリスト
+            TranslateSectionFormulaIdResult: 翻訳されたSectionWithTranslationのリストと使用統計情報
         """
         section_with_translations: List[SectionWithTranslation] = []
         usage_stats: TranslationUsageStatsConfig = TranslationUsageStatsConfig()
@@ -62,14 +73,17 @@ class TranslateSectionFormulaIdUseCase:
                 usage_stats.billed_character_count += section_usage_stats.billed_character_count
                 usage_stats.input_token_count += section_usage_stats.input_token_count
                 usage_stats.output_token_count += section_usage_stats.output_token_count
-        return section_with_translations, usage_stats
+        return TranslateSectionFormulaIdResult(
+            sections=section_with_translations,
+            usage_stats=usage_stats,
+        )
 
     async def execute_async(
         self,
         sections: List[Section],
         source_language: str | None,
         target_language: str,
-    ) -> Tuple[List[SectionWithTranslation], TranslationUsageStatsConfig]:
+    ) -> TranslateSectionFormulaIdResult:
         """Sectionの内容を非同期で翻訳する（数式ID付き）
 
         Args:
@@ -78,7 +92,7 @@ class TranslateSectionFormulaIdUseCase:
             target_language (str): 翻訳先の言語
 
         Returns:
-            Tuple[List[SectionWithTranslation], TranslationUsageStatsConfig]: 翻訳されたセクションと使用統計情報
+            TranslateSectionFormulaIdResult: 翻訳されたセクションと使用統計情報
         """
         LIMIT = 1500
         usage_stats = TranslationUsageStatsConfig()
@@ -189,4 +203,7 @@ class TranslateSectionFormulaIdUseCase:
         # セクションIDでソート
         sections_with_translation.sort(key=lambda x: x.section_id)
 
-        return sections_with_translation, usage_stats
+        return TranslateSectionFormulaIdResult(
+            sections=sections_with_translation,
+            usage_stats=usage_stats,
+        )

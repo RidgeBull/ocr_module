@@ -77,7 +77,7 @@ class OpenAITranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections, usage_stats = await self._translate_section_usecase.execute_async(
+        result = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -86,13 +86,13 @@ class OpenAITranslateClient:
         # セクションごとの翻訳をページごとのデータに整形しなおす
         translated_pages = self._get_translated_page_usecase.execute(
             pages=document.pages,
-            translated_sections=translated_sections,
+            translated_sections=result.sections,
         )
 
         return TranslatedDocument(
             pages=translated_pages,
-            sections=translated_sections,
-            usage_stats=usage_stats,
+            sections=result.sections,
+            usage_stats=result.usage_stats,
         )
 
 
@@ -133,7 +133,7 @@ class AzureOpenAITranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections, usage_stats = await self._translate_section_usecase.execute_async(
+        result = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -142,13 +142,13 @@ class AzureOpenAITranslateClient:
         # セクションごとの翻訳をページごとのデータに整形しなおす
         translated_pages = self._get_translated_page_usecase.execute(
             pages=document.pages,
-            translated_sections=translated_sections,
+            translated_sections=result.sections,
         )
 
         return TranslatedDocument(
             pages=translated_pages,
-            sections=translated_sections,
-            usage_stats=usage_stats,
+            sections=result.sections,
+            usage_stats=result.usage_stats,
         )
 
 
@@ -179,7 +179,7 @@ class DeepLTranslateClient:
             TranslatedDocument: 翻訳済みのOCR結果
         """
         # セクションごとに翻訳
-        translated_sections, usage_stats = await self._translate_section_usecase.execute_async(
+        result = await self._translate_section_usecase.execute_async(
             document.sections,
             source_language=source_language,
             target_language=target_language,
@@ -188,13 +188,13 @@ class DeepLTranslateClient:
         # セクションごとの翻訳をページごとのデータに整形しなおす
         translated_pages = self._get_translated_page_usecase.execute(
             pages=document.pages,
-            translated_sections=translated_sections,
+            translated_sections=result.sections,
         )
 
         return TranslatedDocument(
             pages=translated_pages,
-            sections=translated_sections,
-            usage_stats=usage_stats,
+            sections=result.sections,
+            usage_stats=result.usage_stats,
         )
 
 
