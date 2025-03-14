@@ -1,12 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
-from ocr_module.domain.entities import Document, Page, Section
+from ocr_module.domain.entities import (
+    Document,
+    Page,
+    Section,
+    OCRUsageStatsConfig,
+)
 
 
 class IOCRRepository(ABC):
     @abstractmethod
-    def get_document(self, document_path: str) -> Document:
+    def get_document(self, document_path: str) -> Tuple[Document, OCRUsageStatsConfig]:
         """
         ドキュメントを取得する
 
@@ -14,12 +19,12 @@ class IOCRRepository(ABC):
             document_path (str): ドキュメントのパス
 
         Returns:
-            Document: ドキュメントの解析結果
+            Tuple[Document, OCRUsageStatsConfig]: ドキュメントの解析結果と使用統計情報
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_pages(self, document_path: str) -> List[Page]:
+    def get_pages(self, document_path: str) -> Tuple[List[Page], OCRUsageStatsConfig]:
         """
         ページを取得する
 
@@ -32,7 +37,7 @@ class IOCRRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_sections(self, document_path: str) -> List[Section]:
+    def get_sections(self, document_path: str) -> Tuple[List[Section], OCRUsageStatsConfig]:
         """
         セクションを取得する
 

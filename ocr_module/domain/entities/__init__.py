@@ -35,11 +35,13 @@ __all__ = [
 class Document:
     pages: List[Page]
     sections: List[Section]
+    ocr_usage_stats: OCRUsageStatsConfig = field(default_factory=OCRUsageStatsConfig)
 
     def to_dict(self) -> dict[str, Any]:
         return dict(
             pages=[page.to_dict() for page in self.pages],
             sections=[section.to_dict() for section in self.sections],
+            ocr_usage_stats=self.ocr_usage_stats.to_dict(),
         )
 
     def to_json(self) -> str:
@@ -50,13 +52,13 @@ class Document:
 class TranslatedDocument:
     pages: List[PageWithTranslation]
     sections: List[SectionWithTranslation]
-    usage_stats: TranslationUsageStatsConfig = field(default_factory=TranslationUsageStatsConfig)
+    translation_usage_stats: TranslationUsageStatsConfig = field(default_factory=TranslationUsageStatsConfig)
 
     def to_dict(self) -> dict[str, Any]:
         return dict(
             pages=[page.to_dict() for page in self.pages],
             sections=[section.to_dict() for section in self.sections],
-            usage_stats=self.usage_stats.to_dict(),
+            translation_usage_stats=self.translation_usage_stats.to_dict(),
         )
 
     def to_json(self) -> str:

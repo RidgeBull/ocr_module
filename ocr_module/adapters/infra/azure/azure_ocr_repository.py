@@ -22,6 +22,7 @@ from ocr_module.domain.entities import (
     Paragraph,
     Section,
     Table,
+    OCRUsageStatsConfig,
 )
 from ocr_module.domain.repositories import IImageExtractorRepository, IOCRRepository
 
@@ -74,26 +75,55 @@ def _convert_pixel_to_inch(
 
 
 class AzureOCRRepository(IOCRRepository):
-    def __init__(self, image_extractor: IImageExtractorRepository):
-        self.client = AzureDocumentIntelligenceClient()
+
+    def __init__(
+        self,
+        endpoint: str,
+        key: str,
+        model_id: str,
+        image_extractor: IImageExtractorRepository,
+    ):
+        """AzureOCRRepositoryの初期化
+
+        Args:
+            endpoint (str): Azure Document Intelligenceのエンドポイント
+            key (str): Azure Document Intelligenceのキー
+            model_id (str): Azure Document IntelligenceのモデルID
+            image_extractor (IImageExtractorRepository): 画像抽出器
+        """
+        self.client = AzureDocumentIntelligenceClient(endpoint, key, model_id)
         self.image_extractor = image_extractor
 
         self.logger = getLogger(__name__)
 
-    def get_document(self, document_path: str) -> Document:
+    def get_document(self, document_path: str) -> Tuple[Document, OCRUsageStatsConfig]:
         result = self.client.analyze_document_from_document_path(document_path)
-        return Document(
+        document = Document(
             pages=self._analyze_result_to_pages(result, document_path),
             sections=self._analyze_result_to_sections(result, document_path),
         )
+        usage_stats = OCRUsageStatsConfig(
+            model_name=result.model_id, page_count=len(result.pages)
+        )
+        return document, usage_stats
 
-    def get_pages(self, document_path: str) -> List[Page]:
+    def get_pages(self, document_path: str) -> Tuple[List[Page], OCRUsageStatsConfig]:
         result = self.client.analyze_document_from_document_path(document_path)
-        return self._analyze_result_to_pages(result, document_path)
+        pages = self._analyze_result_to_pages(result, document_path)
+        usage_stats = OCRUsageStatsConfig(
+            model_name=result.model_id, page_count=len(result.pages)
+        )
+        return pages, usage_stats
 
-    def get_sections(self, document_path: str) -> List[Section]:
+    def get_sections(
+        self, document_path: str
+    ) -> Tuple[List[Section], OCRUsageStatsConfig]:
         result = self.client.analyze_document_from_document_path(document_path)
-        return self._analyze_result_to_sections(result, document_path)
+        sections = self._analyze_result_to_sections(result, document_path)
+        usage_stats = OCRUsageStatsConfig(
+            model_name=result.model_id, page_count=len(result.pages)
+        )
+        return sections, usage_stats
 
     def _analyze_result_to_pages(
         self, result: AnalyzeResult, document_path: str
