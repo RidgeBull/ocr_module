@@ -203,8 +203,6 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     page_number=paragraph.page_number,
                 )
             )
-            usage_stats.input_token_count += response["input_tokens"]
-            usage_stats.output_token_count += response["output_tokens"]
         return paragraphs_with_translation, usage_stats
 
     def translate_section(
@@ -253,8 +251,6 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     page_number=paragraph.page_number,
                 )
             )
-            usage_stats.input_token_count += response["input_tokens"]
-            usage_stats.output_token_count += response["output_tokens"]
         return paragraphs_with_translation, usage_stats
 
     def translate_section_with_formula_id(

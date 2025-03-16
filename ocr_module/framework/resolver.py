@@ -79,6 +79,7 @@ class OpenAITranslateClient:
             ),
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
+        self._model_name = model
 
     async def translate_document(
         self,
@@ -108,6 +109,7 @@ class OpenAITranslateClient:
             pages=document.pages,
             translated_sections=result.sections,
         )
+        result.usage_stats.model_name = self._model_name
 
         return TranslatedDocument(
             pages=translated_pages,
@@ -145,6 +147,9 @@ class AzureOpenAITranslateClient:
             ),
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
+        self._model_name = model
+        self._api_version = api_version
+        self._endpoint = endpoint
 
     async def translate_document(
         self,
@@ -174,6 +179,11 @@ class AzureOpenAITranslateClient:
             pages=document.pages,
             translated_sections=result.sections,
         )
+
+        # 翻訳のusage_statsのうち、model,version,endpointを追加
+        result.usage_stats.model_name = self._model_name
+        result.usage_stats.version = self._api_version
+        result.usage_stats.api_endpoint = self._endpoint
 
         return TranslatedDocument(
             pages=translated_pages,
