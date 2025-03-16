@@ -69,6 +69,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         )
         if source_language is None:
             source_language = "automatically detect the source language and"
+
+        # コンテキスト部分を条件付きで追加
+        context_instruction = f"Context: {context}\n" if context else ""
+
         # build translate request
         messages = [
             {
@@ -80,7 +84,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and :formula: placeholders.\n"
                     f"Do not add or remove :formula: placeholders.\n"
                     f"Do not add any other text or comments.\n"
-                    f"Context: {context}\n"
+                    f"{context_instruction}"
                 ),
             },
             {
@@ -116,6 +120,10 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         )
         if source_language is None:
             source_language = "automatically detect the source language and"
+
+        # コンテキスト部分を条件付きで追加
+        context_instruction = f"Context: {context}\n" if context else ""
+
         messages = [
             {
                 "role": "system",
@@ -126,7 +134,7 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and <formula_n/> placeholders.\n"
                     f"Do not add or remove <formula_n/> placeholders.\n"
                     f"Do not add any other text or comments.\n"
-                    f"Context: {context}\n"
+                    f"{context_instruction}"
                 ),
             },
             {

@@ -59,6 +59,8 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                 for paragraph in paragraphs
             ]
         )
+        context_instruction = f"Context: {context}\n" if context else ""
+
         # build translate request
         messages = [
             {
@@ -70,7 +72,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and :formula: placeholders.\n"
                     f"Do not add or remove :formula: placeholders.\n"
                     f"Do not add any other text or comments.\n"
-                    f"Context: {context}\n"
+                    f"{context_instruction}"
                 ),
             },
             {
@@ -104,6 +106,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                 for paragraph in paragraphs
             ]
         )
+        context_instruction = f"Context: {context}\n" if context else ""
         messages = [
             {
                 "role": "system",
@@ -114,7 +117,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and <formula_n/> placeholders.\n"
                     f"Do not add or remove <formula_n/> placeholders.\n"
                     f"Do not add any other text or comments.\n"
-                    f"Context: {context}\n"
+                    f"{context_instruction}"
                 ),
             },
             {
