@@ -22,11 +22,13 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
         self,
         client: AzureOpenAI,
         model: str,
+        context: str | None = None,
         retry_limit: int = 3,
         retry_delay: int = 10,
     ):
         self._client = client
         self._model = model
+        self._context = context
         self._retry_limit = retry_limit
         self._retry_delay = retry_delay
         self._logger = getLogger(__name__)
@@ -34,7 +36,10 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
 
     @staticmethod
     def build_batch_translate_request(
-        paragraphs: List[Paragraph], source_language: str, target_language: str
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
+        context: str | None = None,
     ) -> List[dict[str, str]]:
         """
         Build a batch translate request for AzureOpenAI API
@@ -65,6 +70,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and :formula: placeholders.\n"
                     f"Do not add or remove :formula: placeholders.\n"
                     f"Do not add any other text or comments.\n"
+                    f"Context: {context}\n"
                 ),
             },
             {
@@ -76,7 +82,10 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
 
     @staticmethod
     def build_batch_translate_with_formula_id_request(
-        paragraphs: List[Paragraph], source_language: str, target_language: str
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
+        context: str | None = None,
     ) -> List[dict[str, str]]:
         """
         Build a batch translate request for OpenAI API
@@ -105,6 +114,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                     f"Do not translate the '### Paragraph n ###' prefixes and <formula_n/> placeholders.\n"
                     f"Do not add or remove <formula_n/> placeholders.\n"
                     f"Do not add any other text or comments.\n"
+                    f"Context: {context}\n"
                 ),
             },
             {
@@ -164,10 +174,13 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
         raise Exception("Failed to translate")
 
     def translate_paragraphs(
-        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
     ) -> Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]:
         messages = self.build_batch_translate_request(
-            paragraphs, source_language, target_language
+            paragraphs, source_language, target_language, self._context
         )
         response = self._request_translate(messages)
         translations = self.parse_batch_translate_response(response["data"])
@@ -211,10 +224,13 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
         )
 
     def translate_paragraphs_with_formula_id(
-        self, paragraphs: List[Paragraph], source_language: str, target_language: str
+        self,
+        paragraphs: List[Paragraph],
+        source_language: str,
+        target_language: str,
     ) -> Tuple[List[ParagraphWithTranslation], TranslationUsageStatsConfig]:
         messages = self.build_batch_translate_with_formula_id_request(
-            paragraphs, source_language, target_language
+            paragraphs, source_language, target_language, self._context
         )
         response = self._request_translate(messages)
         translations = self.parse_batch_translate_response(response["data"])

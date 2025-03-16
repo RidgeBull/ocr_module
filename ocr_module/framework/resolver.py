@@ -123,6 +123,7 @@ class AzureOpenAITranslateClient:
         endpoint: str,
         api_key: str,
         api_version: str,
+        context: str | None = None,
     ):
         """AzureOpenAITranslateClientの初期化
 
@@ -140,6 +141,7 @@ class AzureOpenAITranslateClient:
                     api_version=api_version,
                 ),
                 model=model,
+                context=context,
             ),
         )
         self._get_translated_page_usecase = GetTranslatedPageUseCase()
