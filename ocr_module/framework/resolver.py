@@ -14,7 +14,7 @@ from ..usecase import (
     TranslateSectionFormulaIdUseCase,
 )
 from openai import AzureOpenAI, OpenAI
-
+from typing import Literal
 
 class AzureOcrClient:
     def __init__(self, endpoint: str, key: str, model_id: str = "prebuilt-layout"):
@@ -242,6 +242,49 @@ class DeepLTranslateClient:
             sections=result.sections,
             translation_usage_stats=result.usage_stats,
         )
+
+# 翻訳エンジンを指定することで、翻訳エンジンを切り替えることができる便利クラス
+class TranslateClient:
+    def __init__(
+        self,
+        translation_engine: Literal["azure_openai", "deepl"],
+        azure_openai_model: str,
+        azure_openai_endpoint: str,
+        azure_openai_api_key: str,
+        azure_openai_api_version: str,
+        deepl_api_key: str,
+        context: str | None = None,
+        glossary_id: str | None = None,
+    ):
+        self._azure_openai_translate_client = AzureOpenAITranslateClient(
+            model=azure_openai_model,
+            endpoint=azure_openai_endpoint,
+            api_key=azure_openai_api_key,
+            api_version=azure_openai_api_version,
+            context=context,
+        )
+        self._deepl_translate_client = DeepLTranslateClient(
+            api_key=deepl_api_key,
+            glossary_id=glossary_id,
+        )
+        self._translation_engine = translation_engine
+
+    async def translate_document(
+        self,
+        document: Document,
+        source_language: str | None,
+        target_language: str,
+    ) -> TranslatedDocument:
+        if self._translation_engine == "azure_openai":
+            return await self._azure_openai_translate_client.translate_document(
+                document, source_language, target_language
+            )
+        elif self._translation_engine == "deepl":
+            return await self._deepl_translate_client.translate_document(
+                document, source_language, target_language
+            )
+        else:
+            raise ValueError(f"Invalid translation engine: {self._translation_engine}")
 
 
 class GeneratePDFClient:
