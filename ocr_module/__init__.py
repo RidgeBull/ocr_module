@@ -4,6 +4,7 @@ from .framework.resolver import (
     OpenAITranslateClient,
     AzureOpenAITranslateClient,
     DeepLTranslateClient,
+    TranslateClient,
 )
 from ocr_module.domain.entities import (
     Formula,
@@ -33,4 +34,5 @@ __all__ = [
     "SectionWithTranslation",
     "Document",
     "TranslatedDocument",
+    "TranslateClient",
 ]
