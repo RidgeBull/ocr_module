@@ -256,6 +256,18 @@ class TranslateClient:
         context: str | None = None,
         glossary_id: str | None = None,
     ):
+        """TranslateClientの初期化
+
+        Args:
+            translation_engine (Literal[&quot;azure_openai&quot;, &quot;deepl&quot;]): 翻訳エンジン
+            azure_openai_model (str): Azure OpenAIのモデル名
+            azure_openai_endpoint (str): Azure OpenAIのエンドポイント
+            azure_openai_api_key (str): Azure OpenAIのAPIキー
+            azure_openai_api_version (str): Azure OpenAIのAPIバージョン
+            deepl_api_key (str): DeepLのAPIキー
+            context (str | None, optional): Azure OpenAIのコンテキスト. Defaults to None.
+            glossary_id (str | None, optional): DeepLのグロサリーID. Defaults to None.
+        """
         self._azure_openai_translate_client = AzureOpenAITranslateClient(
             model=azure_openai_model,
             endpoint=azure_openai_endpoint,
