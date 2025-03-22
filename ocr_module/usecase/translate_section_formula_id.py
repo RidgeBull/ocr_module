@@ -70,9 +70,9 @@ class TranslateSectionFormulaIdUseCase:
                 usage_stats.model_name = section_usage_stats.model_name
                 usage_stats.version = section_usage_stats.version
                 usage_stats.api_endpoint = section_usage_stats.api_endpoint
-                usage_stats.billed_character_count += section_usage_stats.billed_character_count
-                usage_stats.input_token_count += section_usage_stats.input_token_count
-                usage_stats.output_token_count += section_usage_stats.output_token_count
+                usage_stats.billed_characters_count += section_usage_stats.billed_characters_count
+                usage_stats.input_tokens_count += section_usage_stats.input_tokens_count
+                usage_stats.output_tokens_count += section_usage_stats.output_tokens_count
         return TranslateSectionFormulaIdResult(
             sections=section_with_translations,
             usage_stats=usage_stats,
@@ -159,9 +159,9 @@ class TranslateSectionFormulaIdUseCase:
                     section_usage_stats.model_name = stats.model_name
                     section_usage_stats.version = stats.version
                     section_usage_stats.api_endpoint = stats.api_endpoint
-                    section_usage_stats.billed_character_count += stats.billed_character_count
-                    section_usage_stats.input_token_count += stats.input_token_count
-                    section_usage_stats.output_token_count += stats.output_token_count
+                    section_usage_stats.billed_characters_count += stats.billed_characters_count
+                    section_usage_stats.input_tokens_count += stats.input_tokens_count
+                    section_usage_stats.output_tokens_count += stats.output_tokens_count
 
                 ret = SectionWithTranslation(
                     section_id=section.section_id,
@@ -196,9 +196,9 @@ class TranslateSectionFormulaIdUseCase:
             usage_stats.model_name = section_stats.model_name
             usage_stats.version = section_stats.version
             usage_stats.api_endpoint = section_stats.api_endpoint
-            usage_stats.billed_character_count += section_stats.billed_character_count
-            usage_stats.input_token_count += section_stats.input_token_count
-            usage_stats.output_token_count += section_stats.output_token_count
+            usage_stats.billed_characters_count += section_stats.billed_characters_count
+            usage_stats.input_tokens_count += section_stats.input_tokens_count
+            usage_stats.output_tokens_count += section_stats.output_tokens_count
 
         # セクションIDでソート
         sections_with_translation.sort(key=lambda x: x.section_id)
