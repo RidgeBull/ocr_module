@@ -163,6 +163,7 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
                 return {
                     "status": "success",
                     "data": response.choices[0].message.content,
+                    "model_name": response.model,
                     "input_tokens": (
                         response.usage.prompt_tokens if response.usage else 0
                     ),
@@ -189,8 +190,9 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
         translations = self.parse_batch_translate_response(response["data"])
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         usage_stats = TranslationUsageStatsConfig(
-            input_token_count=response["input_tokens"],
-            output_token_count=response["output_tokens"],
+            model_name=response["model_name"],
+            input_tokens_count=response["input_tokens"],
+            output_tokens_count=response["output_tokens"],
         )
         for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(
@@ -237,8 +239,9 @@ class AzureOpenAITranslateSectionRepository(ITranslateSectionRepository):
         translations = self.parse_batch_translate_response(response["data"])
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         usage_stats = TranslationUsageStatsConfig(
-            input_token_count=response["input_tokens"],
-            output_token_count=response["output_tokens"],
+            model_name=response["model_name"],
+            input_tokens_count=response["input_tokens"],
+            output_tokens_count=response["output_tokens"],
         )
         for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(

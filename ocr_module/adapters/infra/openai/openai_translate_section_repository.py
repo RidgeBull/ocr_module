@@ -213,8 +213,8 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
         usage_stats = TranslationUsageStatsConfig(
-            input_token_count=response["input_tokens"],
-            output_token_count=response["output_tokens"],
+            input_tokens_count=response["input_tokens"],
+            output_tokens_count=response["output_tokens"],
         )
         for translation, paragraph in zip(translations, paragraphs):
             paragraphs_with_translation.append(
@@ -272,8 +272,8 @@ class OpenAITranslateSectionRepository(ITranslateSectionRepository):
         translations = self.parse_batch_translate_response(response["data"])
         # 翻訳のリクエスト自体は一度に一気に行われるため、responseのinput_tokensとoutput_tokensをそのまま使用する
         usage_stats = TranslationUsageStatsConfig(
-            input_token_count=response["input_tokens"],
-            output_token_count=response["output_tokens"],
+            input_tokens_count=response["input_tokens"],
+            output_tokens_count=response["output_tokens"],
         )
         paragraphs_with_translation: List[ParagraphWithTranslation] = []
         for translation, paragraph in zip(translations, paragraphs):

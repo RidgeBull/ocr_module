@@ -22,18 +22,18 @@ class TranslationUsageStatsConfig:
     model_name: str = ""
     version: str = ""
     api_endpoint: str = ""
-    billed_character_count: int = 0
-    input_token_count: int = 0
-    output_token_count: int = 0
+    billed_characters_count: int = 0
+    input_tokens_count: int = 0
+    output_tokens_count: int = 0
 
     def to_dict(self) -> dict:
         return dict(
             model_name=self.model_name,
             version=self.version,
             api_endpoint=self.api_endpoint,
-            billed_character_count=self.billed_character_count,
-            input_token_count=self.input_token_count,
-            output_token_count=self.output_token_count,
+            billed_characters_count=self.billed_characters_count,
+            input_token_count=self.input_tokens_count,
+            output_token_count=self.output_tokens_count,
         )
 
     @classmethod
