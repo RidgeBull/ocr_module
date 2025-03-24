@@ -297,7 +297,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 # ページからテキスト情報とテーブル情報を取得
                 try:
                     self._logger.debug(f"ページ {page_number} のテキスト情報を取得")
-                    page_dict = page.get_text("dict", text_flags)
+                    page_dict = page.get_text("dict", flags=text_flags)
                     self._logger.debug(f"ページ {page_number} のテキスト取得完了")
 
                     # ページ辞書の内容を検証
