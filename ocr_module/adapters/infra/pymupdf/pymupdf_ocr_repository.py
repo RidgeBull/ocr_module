@@ -12,7 +12,6 @@ from ocr_module.domain.entities import (
     OCRUsageStatsConfig,
 )
 import pymupdf
-import traceback  # スタックトレース用
 from logging import DEBUG, INFO, getLogger
 
 
@@ -54,8 +53,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 self._logger.info("PDFファイルを検出、PyMuPDFを使用")
                 return self._get_document_from_pdf(document)
         except Exception as e:
-            self._logger.error(f"ドキュメント取得中にエラーが発生: {str(e)}")
-            self._logger.debug(traceback.format_exc())
+            self._logger.error(
+                f"ドキュメント取得中にエラーが発生: {str(e)}", exc_info=True
+            )
             raise
 
     def get_pages(self, document_path: str) -> Tuple[List[Page], OCRUsageStatsConfig]:
@@ -75,8 +75,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
             )
             return document_entity.pages, ocr_usage_stats_config
         except Exception as e:
-            self._logger.error(f"ページ取得中にエラーが発生: {str(e)}")
-            self._logger.debug(traceback.format_exc())
+            self._logger.error(f"ページ取得中にエラーが発生: {str(e)}", exc_info=True)
             raise
 
     def get_sections(self, document_path: str) -> Tuple[List[Section], OCRUsageStatsConfig]:
@@ -96,8 +95,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
             )
             return document_entity.sections, ocr_usage_stats_config
         except Exception as e:
-            self._logger.error(f"セクション取得中にエラーが発生: {str(e)}")
-            self._logger.debug(traceback.format_exc())
+            self._logger.error(
+                f"セクション取得中にエラーが発生: {str(e)}", exc_info=True
+            )
             raise
 
     def _get_document_from_image(
@@ -134,8 +134,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                         f"ページ {page_number} のOCRテキストページを取得"
                     )
                 except Exception as e:
-                    self._logger.error(f"OCRテキストページ取得中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"OCRテキストページ取得中にエラー: {str(e)}", exc_info=True
+                    )
                     continue
 
                 # ページの要素を抽出
@@ -151,8 +152,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                         result
                     )
                 except Exception as e:
-                    self._logger.error(f"要素抽出中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(f"要素抽出中にエラー: {str(e)}", exc_info=True)
                     continue
 
                 # ページエンティティを作成
@@ -163,15 +163,17 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     pages.append(page_entity)
                     self._logger.debug(f"ページ {page_number} のエンティティを作成")
                 except Exception as e:
-                    self._logger.error(f"ページエンティティ作成中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"ページエンティティ作成中にエラー: {str(e)}", exc_info=True
+                    )
                     continue
 
                 page_number += 1
 
             except Exception as e:
-                self._logger.error(f"ページ {page_number} の処理中にエラー: {str(e)}")
-                self._logger.debug(traceback.format_exc())
+                self._logger.error(
+                    f"ページ {page_number} の処理中にエラー: {str(e)}", exc_info=True
+                )
                 page_number += 1
 
         # 各ページに対応するセクションを作成
@@ -200,8 +202,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     f"ページ {page_entity.page_number} のセクションを作成"
                 )
             except Exception as e:
-                self._logger.error(f"ページ {i+1} のセクション作成中にエラー: {str(e)}")
-                self._logger.debug(traceback.format_exc())
+                self._logger.error(
+                    f"ページ {i+1} のセクション作成中にエラー: {str(e)}", exc_info=True
+                )
 
         # ドキュメントエンティティを作成
         document_entity = Document(
@@ -281,10 +284,11 @@ class PyMuPDFOCRRepository(IOCRRepository):
                         figures.append(figure)
                         figure_id += 1
                 except Exception as e:
-                    self._logger.error(f"ブロック {i} の処理中にエラー: {str(e)}")
+                    self._logger.error(
+                        f"ブロック {i} の処理中にエラー: {str(e)}", exc_info=True
+                    )
         except Exception as e:
-            self._logger.error(f"ブロック抽出処理中にエラー: {str(e)}")
-            self._logger.debug(traceback.format_exc())
+            self._logger.error(f"ブロック抽出処理中にエラー: {str(e)}", exc_info=True)
 
         self._logger.debug(
             f"OCR要素抽出完了 - 段落: {len(paragraphs)}, 図: {len(figures)}, テーブル: {len(tables)}"
@@ -344,19 +348,19 @@ class PyMuPDFOCRRepository(IOCRRepository):
                         )
                         continue
                 except Exception as e:
-                    self._logger.error(f"テキスト情報取得中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"テキスト情報取得中にエラー: {str(e)}", exc_info=True
+                    )
                     continue
 
                 try:
                     self._logger.debug(f"ページ {page_number} のテーブル情報を取得")
-                    table_finder = page.find_tables()
+                    table_finder = page.find_tables(strategy="lines")
                     self._logger.debug(f"テーブルファインダー: {type(table_finder)}")
-                    if hasattr(table_finder, "tables"):
-                        self._logger.debug(f"テーブル数: {len(table_finder.tables)}")
                 except Exception as e:
-                    self._logger.error(f"テーブル情報取得中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"テーブル情報取得中にエラー: {str(e)}", exc_info=True
+                    )
                     table_finder = None
 
                 # ブロック処理
@@ -386,8 +390,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                         f"ブロック処理完了 - 段落: {len(page_paragraphs)}, 図: {len(page_figures)}"
                     )
                 except Exception as e:
-                    self._logger.error(f"ブロック処理中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"ブロック処理中にエラー: {str(e)}", exc_info=True
+                    )
                     page_paragraphs = []
                     page_figures = []
 
@@ -395,7 +400,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 try:
                     if table_finder:
                         page_tables, table_id = self._process_tables(
-                            table_finder, page, page_number, table_id
+                            table_finder, page, page_number, table_id, page_paragraphs
                         )
                         self._logger.debug(
                             f"テーブル処理完了 - テーブル: {len(page_tables)}"
@@ -403,8 +408,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     else:
                         page_tables = []
                 except Exception as e:
-                    self._logger.error(f"テーブル処理中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"テーブル処理中にエラー: {str(e)}", exc_info=True
+                    )
                     page_tables = []
 
                 # 全体リストに追加
@@ -420,14 +426,16 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     pages.append(page_entity)
                     self._logger.debug(f"ページ {page_number} のエンティティを作成")
                 except Exception as e:
-                    self._logger.error(f"ページエンティティ作成中にエラー: {str(e)}")
-                    self._logger.debug(traceback.format_exc())
+                    self._logger.error(
+                        f"ページエンティティ作成中にエラー: {str(e)}", exc_info=True
+                    )
 
                 page_number += 1
 
             except Exception as e:
-                self._logger.error(f"ページ {page_number} の処理中にエラー: {str(e)}")
-                self._logger.debug(traceback.format_exc())
+                self._logger.error(
+                    f"ページ {page_number} の処理中にエラー: {str(e)}", exc_info=True
+                )
                 page_number += 1
 
         # 各ページに対応するセクションを作成
@@ -456,8 +464,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     f"ページ {page_entity.page_number} のセクションを作成"
                 )
             except Exception as e:
-                self._logger.error(f"ページ {i+1} のセクション作成中にエラー: {str(e)}")
-                self._logger.debug(traceback.format_exc())
+                self._logger.error(
+                    f"ページ {i+1} のセクション作成中にエラー: {str(e)}", exc_info=True
+                )
 
         # ドキュメントエンティティを作成
         document_entity = Document(
@@ -557,8 +566,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
                         f"ブロック {i} は未対応の型です: {type(block)}"
                     )
             except Exception as e:
-                self._logger.error(f"ブロック {i} の処理中にエラー: {str(e)}")
-                self._logger.debug(traceback.format_exc())
+                self._logger.error(
+                    f"ブロック {i} の処理中にエラー: {str(e)}", exc_info=True
+                )
 
         self._logger.debug(
             f"テキストブロック処理完了 - 段落: {len(paragraphs)}, 図: {len(figures)}"
@@ -572,6 +582,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         page: pymupdf.Page,
         page_number: int,
         table_id: int,
+        paragraphs: List[Paragraph] = None,  # 段落リストを追加
     ) -> Tuple[List[Table], int]:
         """テーブル情報を処理する
 
@@ -580,12 +591,21 @@ class PyMuPDFOCRRepository(IOCRRepository):
             page: ページオブジェクト
             page_number: 現在のページ番号
             table_id: テーブルID開始値
+            paragraphs: テーブルと同じページの段落リスト
 
         Returns:
             処理したテーブルのリストと更新されたテーブルID
         """
         self._logger.debug("テーブル処理を開始")
         tables: List[Table] = []
+
+        # 同じページの段落のみをフィルタリング
+        page_paragraphs = (
+            [p for p in paragraphs if p.page_number == page_number]
+            if paragraphs
+            else []
+        )
+        self._logger.debug(f"テーブルと同じページの段落数: {len(page_paragraphs)}")
 
         self._logger.debug(f"テーブル数: {len(table_finder.tables)}")
         for i, table in enumerate(table_finder.tables):
@@ -599,22 +619,38 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 bbox = table.bbox
                 self._logger.debug(f"テーブル {i} の境界ボックス: {bbox}")
 
+                # テーブルのbbox内に含まれる段落のIDを特定
+                element_paragraph_ids = []
+                for paragraph in page_paragraphs:
+                    # 段落のbboxがテーブルのbbox内に含まれているかチェック
+                    p_x0, p_y0, p_x1, p_y1 = paragraph.bbox
+                    t_x0, t_y0, t_x1, t_y1 = bbox
+
+                    if t_x0 <= p_x0 and p_x1 <= t_x1 and t_y0 <= p_y0 and p_y1 <= t_y1:
+                        element_paragraph_ids.append(paragraph.paragraph_id)
+                        self._logger.debug(
+                            f"テーブル {i} に段落 {paragraph.paragraph_id} が含まれています"
+                        )
+
                 # テーブルエンティティを作成
                 table_entity = Table(
                     table_id=table_id,
                     bbox=bbox,
                     page_number=page_number,
                     image_data=None,
-                    element_paragraph_ids=[],
+                    element_paragraph_ids=element_paragraph_ids,
                 )
 
                 tables.append(table_entity)
                 table_id += 1
-                self._logger.debug(f"テーブル {i} のエンティティを作成")
+                self._logger.debug(
+                    f"テーブル {i} のエンティティを作成 (含まれる段落数: {len(element_paragraph_ids)})"
+                )
 
             except Exception as e:
-                self._logger.error(f"テーブル {i} の処理中にエラー: {str(e)}")
-                self._logger.debug(traceback.format_exc())
+                self._logger.error(
+                    f"テーブル {i} の処理中にエラー: {str(e)}", exc_info=True
+                )
 
         self._logger.debug(f"テーブル処理完了 - テーブル数: {len(tables)}")
         return tables, table_id
@@ -645,8 +681,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
             height = page.rect.height
             self._logger.debug(f"ページ寸法: 幅 {width}, 高さ {height}")
         except Exception as e:
-            self._logger.error(f"ページ寸法取得中にエラー: {str(e)}")
-            self._logger.debug(traceback.format_exc())
+            self._logger.error(f"ページ寸法取得中にエラー: {str(e)}", exc_info=True)
             width = 0
             height = 0
 
@@ -673,8 +708,9 @@ class PyMuPDFOCRRepository(IOCRRepository):
             )
             return page_entity
         except Exception as e:
-            self._logger.error(f"ページエンティティ作成中にエラー: {str(e)}")
-            self._logger.debug(traceback.format_exc())
+            self._logger.error(
+                f"ページエンティティ作成中にエラー: {str(e)}", exc_info=True
+            )
             # エラー時は最小限のページエンティティを返す
             return Page(
                 page_number=page_number,
