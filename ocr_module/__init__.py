@@ -5,6 +5,7 @@ from .framework.resolver import (
     AzureOpenAITranslateClient,
     DeepLTranslateClient,
     TranslateClient,
+    PyMuPDFOcrClient,
 )
 from ocr_module.domain.entities import (
     Formula,
@@ -35,4 +36,5 @@ __all__ = [
     "Document",
     "TranslatedDocument",
     "TranslateClient",
+    "PyMuPDFOcrClient",
 ]

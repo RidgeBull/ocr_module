@@ -5,7 +5,7 @@ from ..adapters.infra.azure import (
 from ..adapters.infra.deepl import DeepLTranslateSectionRepository
 from ..adapters.infra.openai import OpenAITranslateSectionRepository
 from ..adapters.infra.pylatex import PyLaTeXGeneratePDFRepository
-from ..adapters.infra.pymupdf import PyMuPDFGeneratePDFRepository, PyMuPDFImageExtractor
+from ..adapters.infra.pymupdf import PyMuPDFGeneratePDFRepository, PyMuPDFImageExtractor, PyMuPDFOCRRepository
 from ..domain.entities import Document, PageWithTranslation, TranslatedDocument
 from ..usecase import (
     ChangeFormulaIdUseCase,
@@ -55,7 +55,34 @@ class AzureOcrClient:
         document.ocr_usage_stats = ocr_usage_stats
 
         return document
+    
+class PyMuPDFOcrClient:
+    def __init__(self):
+        """PyMuPDFOcrClientの初期化
+        """
+        self._ocr_repository = PyMuPDFOCRRepository()
+        self._change_formula_id_usecase = ChangeFormulaIdUseCase()
 
+    def get_document_from_path(self, document_path: str) -> Document:
+        """localのファイルパスのPDFに対するPyMuPDFのOCR結果（Document）を取得する
+
+        Args:
+            document_path (str): localのファイルパス
+
+        Returns:
+            Document: PyMuPDFのOCR結果
+        """
+        document, ocr_usage_stats = self._ocr_repository.get_document(document_path)
+        
+        # 数式IDの変更
+        sections_with_formula_id = self._change_formula_id_usecase.execute(
+            pages=document.pages,
+            sections=document.sections,
+        )
+        document.sections = sections_with_formula_id
+        document.ocr_usage_stats = ocr_usage_stats
+
+        return document
 
 class OpenAITranslateClient:
     def __init__(
