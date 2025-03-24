@@ -117,6 +117,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         paragraph_id = 0
         figure_id = 0
         table_id = 0
+        section_id = 0
 
         # 結果格納用のリスト
         pages: List[Page] = []
@@ -173,10 +174,39 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 self._logger.debug(traceback.format_exc())
                 page_number += 1
 
+        # 各ページに対応するセクションを作成
+        sections = []
+        for i, page_entity in enumerate(pages):
+            try:
+                # セクションに含まれる要素のIDリストを作成
+                paragraph_ids = [p.paragraph_id for p in page_entity.paragraphs]
+                table_ids = [t.table_id for t in page_entity.tables]
+                figure_ids = [f.figure_id for f in page_entity.figures]
+
+                # セクションを作成
+                section = Section(
+                    section_id=section_id,
+                    paragraphs=page_entity.paragraphs,
+                    paragraph_ids=paragraph_ids,
+                    tables=page_entity.tables,
+                    table_ids=table_ids,
+                    figures=page_entity.figures,
+                    figure_ids=figure_ids,
+                )
+
+                sections.append(section)
+                section_id += 1
+                self._logger.debug(
+                    f"ページ {page_entity.page_number} のセクションを作成"
+                )
+            except Exception as e:
+                self._logger.error(f"ページ {i+1} のセクション作成中にエラー: {str(e)}")
+                self._logger.debug(traceback.format_exc())
+
         # ドキュメントエンティティを作成
         document_entity = Document(
             pages=pages,
-            sections=[],  # OCRでは現在セクション情報は取得しない
+            sections=sections,  # 作成したセクションを使用
         )
 
         # 使用統計情報を作成
@@ -185,7 +215,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         )
 
         self._logger.info(
-            f"画像ファイルからドキュメントを取得完了、ページ数: {len(pages)}"
+            f"画像ファイルからドキュメントを取得完了、ページ数: {len(pages)}, セクション数: {len(sections)}"
         )
         return document_entity, ocr_usage_stats_config
 
@@ -289,6 +319,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         figure_id = 0
         table_id = 0
         page_number = 1
+        section_id = 0
 
         # ドキュメント内の各ページを処理
         for page in document:
@@ -399,10 +430,39 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 self._logger.debug(traceback.format_exc())
                 page_number += 1
 
+        # 各ページに対応するセクションを作成
+        sections = []
+        for i, page_entity in enumerate(pages):
+            try:
+                # セクションに含まれる要素のIDリストを作成
+                paragraph_ids = [p.paragraph_id for p in page_entity.paragraphs]
+                table_ids = [t.table_id for t in page_entity.tables]
+                figure_ids = [f.figure_id for f in page_entity.figures]
+
+                # セクションを作成
+                section = Section(
+                    section_id=section_id,
+                    paragraphs=page_entity.paragraphs,
+                    paragraph_ids=paragraph_ids,
+                    tables=page_entity.tables,
+                    table_ids=table_ids,
+                    figures=page_entity.figures,
+                    figure_ids=figure_ids,
+                )
+
+                sections.append(section)
+                section_id += 1
+                self._logger.debug(
+                    f"ページ {page_entity.page_number} のセクションを作成"
+                )
+            except Exception as e:
+                self._logger.error(f"ページ {i+1} のセクション作成中にエラー: {str(e)}")
+                self._logger.debug(traceback.format_exc())
+
         # ドキュメントエンティティを作成
         document_entity = Document(
             pages=pages,
-            sections=[],  # 現在はセクション情報を取得しない
+            sections=sections,  # 作成したセクションを使用
         )
 
         # 使用統計情報を作成
@@ -411,7 +471,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         )
 
         self._logger.info(
-            f"PDFファイルからドキュメントを取得完了、ページ数: {len(pages)}"
+            f"PDFファイルからドキュメントを取得完了、ページ数: {len(pages)}, セクション数: {len(sections)}"
         )
         return document_entity, ocr_usage_stats_config
 
@@ -492,38 +552,6 @@ class PyMuPDFOCRRepository(IOCRRepository):
                             f"辞書型ブロック {i} の処理中にエラー: {str(e)}"
                         )
                         self._logger.debug(f"問題のブロック: {block}")
-
-                elif isinstance(block, (list, tuple)):
-                    # 従来のリスト/タプル形式のブロック処理
-                    if len(block) < 7:  # 必要な要素数を確認
-                        self._logger.warning(
-                            f"ブロック {i} の要素数が不足: {len(block)}"
-                        )
-                        continue
-
-                    x0, y0, x1, y1, text, block_no, block_type = block[:7]
-
-                    if block_type == 0:  # テキストブロック
-                        paragraph = Paragraph(
-                            paragraph_id=paragraph_id,
-                            role="text",
-                            content=text,
-                            bbox=(x0, y0, x1, y1),
-                            page_number=page_number,
-                        )
-                        paragraphs.append(paragraph)
-                        paragraph_id += 1
-
-                    elif block_type == 1:  # 画像ブロック
-                        figure = Figure(
-                            figure_id=figure_id,
-                            bbox=(x0, y0, x1, y1),
-                            page_number=page_number,
-                            image_data=None,
-                            element_paragraph_ids=[],
-                        )
-                        figures.append(figure)
-                        figure_id += 1
                 else:
                     self._logger.warning(
                         f"ブロック {i} は未対応の型です: {type(block)}"
@@ -539,11 +567,11 @@ class PyMuPDFOCRRepository(IOCRRepository):
         return (paragraphs, figures, paragraph_id, figure_id)
 
     def _process_tables(
-        self, 
-        table_finder: Any, 
-        page: pymupdf.Page, 
-        page_number: int, 
-        table_id: int
+        self,
+        table_finder: pymupdf.table.TableFinder,
+        page: pymupdf.Page,
+        page_number: int,
+        table_id: int,
     ) -> Tuple[List[Table], int]:
         """テーブル情報を処理する
 
@@ -558,11 +586,6 @@ class PyMuPDFOCRRepository(IOCRRepository):
         """
         self._logger.debug("テーブル処理を開始")
         tables: List[Table] = []
-
-        # テーブルが見つからない場合は空のリストを返す
-        if not hasattr(table_finder, "tables") or not table_finder.tables:
-            self._logger.debug("テーブルが見つかりませんでした")
-            return tables, table_id
 
         self._logger.debug(f"テーブル数: {len(table_finder.tables)}")
         for i, table in enumerate(table_finder.tables):
