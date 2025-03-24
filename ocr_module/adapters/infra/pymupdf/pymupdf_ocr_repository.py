@@ -425,7 +425,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         """テキストブロックを処理する
 
         Args:
-            blocks: ブロックのリスト
+            blocks: ブロックのリスト（辞書型またはタプル型）
             page_number: 現在のページ番号
             paragraph_id: 段落ID開始値
             figure_id: 図ID開始値
@@ -439,41 +439,98 @@ class PyMuPDFOCRRepository(IOCRRepository):
 
         for i, block in enumerate(blocks):
             try:
-                if not isinstance(block, (list, tuple)):
+                # ブロックの形式を判断して処理
+                if isinstance(block, dict):
+                    # get_text("dict")から返された辞書形式のブロックの処理
+                    try:
+                        # 必要なキーが存在するか確認
+                        if "type" in block:
+                            block_type = block.get("type", -1)
+
+                            # ブロックタイプに応じた処理
+                            if block_type == 0:  # テキストブロック
+                                # テキストブロックの場合、さらに階層があるケースがある
+                                if "lines" in block:
+                                    text_content = ""
+                                    for line in block["lines"]:
+                                        if "spans" in line:
+                                            for span in line["spans"]:
+                                                if "text" in span:
+                                                    text_content += span.get("text", "")
+
+                                    # ブロックの境界ボックスを取得
+                                    if "bbox" in block:
+                                        bbox = block["bbox"]
+                                        x0, y0, x1, y1 = bbox
+
+                                        paragraph = Paragraph(
+                                            paragraph_id=paragraph_id,
+                                            role="text",
+                                            content=text_content,
+                                            bbox=(x0, y0, x1, y1),
+                                            page_number=page_number,
+                                        )
+                                        paragraphs.append(paragraph)
+                                        paragraph_id += 1
+
+                            elif block_type == 1:  # 画像ブロック
+                                if "bbox" in block:
+                                    bbox = block["bbox"]
+                                    x0, y0, x1, y1 = bbox
+
+                                    figure = Figure(
+                                        figure_id=figure_id,
+                                        bbox=(x0, y0, x1, y1),
+                                        page_number=page_number,
+                                        image_data=None,
+                                        element_paragraph_ids=[],
+                                    )
+                                    figures.append(figure)
+                                    figure_id += 1
+                    except Exception as e:
+                        self._logger.error(
+                            f"辞書型ブロック {i} の処理中にエラー: {str(e)}"
+                        )
+                        self._logger.debug(f"問題のブロック: {block}")
+
+                elif isinstance(block, (list, tuple)):
+                    # 従来のリスト/タプル形式のブロック処理
+                    if len(block) < 7:  # 必要な要素数を確認
+                        self._logger.warning(
+                            f"ブロック {i} の要素数が不足: {len(block)}"
+                        )
+                        continue
+
+                    x0, y0, x1, y1, text, block_no, block_type = block[:7]
+
+                    if block_type == 0:  # テキストブロック
+                        paragraph = Paragraph(
+                            paragraph_id=paragraph_id,
+                            role="text",
+                            content=text,
+                            bbox=(x0, y0, x1, y1),
+                            page_number=page_number,
+                        )
+                        paragraphs.append(paragraph)
+                        paragraph_id += 1
+
+                    elif block_type == 1:  # 画像ブロック
+                        figure = Figure(
+                            figure_id=figure_id,
+                            bbox=(x0, y0, x1, y1),
+                            page_number=page_number,
+                            image_data=None,
+                            element_paragraph_ids=[],
+                        )
+                        figures.append(figure)
+                        figure_id += 1
+                else:
                     self._logger.warning(
-                        f"ブロック {i} はリストまたはタプルではありません: {type(block)}"
+                        f"ブロック {i} は未対応の型です: {type(block)}"
                     )
-                    continue
-
-                if len(block) < 7:  # 必要な要素数を確認
-                    self._logger.warning(f"ブロック {i} の要素数が不足: {len(block)}")
-                    continue
-
-                x0, y0, x1, y1, text, block_no, block_type = block[:7]
-
-                if block_type == 0:  # テキストブロック
-                    paragraph = Paragraph(
-                        paragraph_id=paragraph_id,
-                        role="text",
-                        content=text,
-                        bbox=(x0, y0, x1, y1),
-                        page_number=page_number,
-                    )
-                    paragraphs.append(paragraph)
-                    paragraph_id += 1
-
-                elif block_type == 1:  # 画像ブロック
-                    figure = Figure(
-                        figure_id=figure_id,
-                        bbox=(x0, y0, x1, y1),
-                        page_number=page_number,
-                        image_data=None,
-                        element_paragraph_ids=[],
-                    )
-                    figures.append(figure)
-                    figure_id += 1
             except Exception as e:
                 self._logger.error(f"ブロック {i} の処理中にエラー: {str(e)}")
+                self._logger.debug(traceback.format_exc())
 
         self._logger.debug(
             f"テキストブロック処理完了 - 段落: {len(paragraphs)}, 図: {len(figures)}"
