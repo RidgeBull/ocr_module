@@ -1,8 +1,246 @@
-# 翻訳手順
+# OCRモジュール
 
-## Azure OCR
+OCRと翻訳機能を提供するPythonモジュールです。PDFや画像からテキスト、テーブル、図、数式などを抽出し、構造化されたデータとして利用できます。
 
-### 得られる結果
+[![PyPI version](https://badge.fury.io/py/ocr_module.svg)](https://badge.fury.io/py/ocr_module)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 機能
+
+- PDF文書や画像からテキスト抽出（OCR）
+- テーブル検出と構造化データへの変換
+- 画像やグラフの抽出
+- 数式の認識と処理
+- セクション分析と構造化
+- 翻訳機能との連携
+
+## インストール方法
+
+### 安定版のインストール
+
+```bash
+pip install ocr_module
+```
+
+### 開発版のインストール
+
+開発版は最新機能を含みますが、不安定な場合があります。
+
+```bash
+pip install ocr_module --pre
+```
+
+または直接GitHubからインストール：
+
+```bash
+pip install git+https://github.com/ridgebull/ocr_module.git@develop
+```
+
+## 必要条件
+
+- Python 3.8以上
+- 依存ライブラリ:
+  - azure-ai-documentintelligence
+  - openai
+  - pylatex
+  - pypdf2
+  - pymupdf
+  - pydantic-settings
+  - deepl
+
+## 基本的な使い方
+
+### OCRモジュールの初期化
+
+```python
+from ocr_module.adapters.infra.azure.azure_ocr_repository import AzureOCRRepository
+from ocr_module.adapters.infra.pymupdf.pymupdf_ocr_repository import PyMuPDFOCRRepository
+
+# Azureを使用する場合
+ocr_repo = AzureOCRRepository(
+    endpoint="YOUR_AZURE_ENDPOINT",
+    key="YOUR_AZURE_KEY"
+)
+
+# PyMuPDFを使用する場合
+ocr_repo = PyMuPDFOCRRepository()
+```
+
+### PDFからドキュメント情報を取得
+
+```python
+# ドキュメントを取得
+document, stats = ocr_repo.get_document("path/to/document.pdf")
+
+# ページとセクションへのアクセス
+for page in document.pages:
+    print(f"ページ {page.page_number}:")
+    print(f"  幅: {page.width}, 高さ: {page.height}")
+    print(f"  段落数: {len(page.paragraphs)}")
+    print(f"  テーブル数: {len(page.tables)}")
+    print(f"  図の数: {len(page.figures)}")
+
+# テーブルの処理
+for table in document.pages[0].tables:
+    print(f"テーブルID: {table.table_id}")
+    print(f"位置: {table.bbox}")
+```
+
+### 画像からのOCR処理
+
+```python
+# 画像からテキスト抽出
+document, stats = ocr_repo.get_document("path/to/image.jpg")
+
+# テキスト内容を表示
+for page in document.pages:
+    for paragraph in page.paragraphs:
+        print(paragraph.content)
+```
+
+## テーブル検出と処理
+
+PyMuPDFを使用したテーブル検出の例:
+
+```python
+from ocr_module.adapters.infra.pymupdf.pymupdf_ocr_repository import PyMuPDFOCRRepository
+
+ocr_repo = PyMuPDFOCRRepository()
+document, stats = ocr_repo.get_document("path/to/document_with_tables.pdf")
+
+# 全てのテーブルを処理
+for page in document.pages:
+    for table in page.tables:
+        print(f"テーブルID: {table.table_id}, ページ: {table.page_number}")
+        print(f"境界ボックス: {table.bbox}")
+```
+
+## エラーハンドリング
+
+```python
+try:
+    document, stats = ocr_repo.get_document("path/to/document.pdf")
+except Exception as e:
+    print(f"OCR処理中にエラーが発生しました: {str(e)}")
+```
+
+## ロギング設定
+
+詳細なデバッグ情報を見るためにロギングレベルを調整できます：
+
+```python
+import logging
+
+# ロガーの設定
+logging.basicConfig(level=logging.DEBUG)
+```
+
+## トラブルシューティング
+
+### 一般的な問題と解決策
+
+1. **テーブル検出に問題がある場合**:
+   - 文書の品質を確認
+   - テーブル周囲の余白を十分に確保
+   - PyMuPDFの最新バージョンを使用しているか確認
+
+2. **OCRの精度が低い場合**:
+   - 高解像度の入力ファイルを使用
+   - コントラストの高い画像で試行
+   - カスタム言語モデルの設定を検討
+
+3. **パフォーマンスの問題**:
+   - 大きなファイルは分割して処理
+   - メモリ使用量を監視
+   - バッチ処理の実装を検討
+
+## 開発者向け情報
+
+### プロジェクト構造
+
+```
+ocr_module/
+├── adapters/            # 外部サービスやライブラリとの接続
+│   ├── infra/           # インフラ層の実装
+│   │   ├── azure/       # Azure OCR実装
+│   │   └── pymupdf/     # PyMuPDF実装
+├── domain/              # ドメイン層
+│   ├── entities/        # エンティティの定義
+│   ├── repositories/    # リポジトリインターフェース
+│   └── services/        # サービス実装
+└── usecases/            # ユースケース層
+```
+
+### エンティティモデル
+
+OCRモジュールでは以下のエンティティを使用しています：
+
+```python
+class Document:
+    pages: List[Page]
+    sections: List[Section]
+
+class Page:
+    page_number: int
+    width: float
+    height: float
+    paragraphs: List[Paragraph]
+    figures: List[Figure]
+    tables: List[Table]
+    formulas: List[Formula]
+    display_formulas: List[DisplayFormula]
+
+class Paragraph:
+    paragraph_id: int
+    role: Optional[str]
+    content: str
+    bbox: Tuple[float, float, float, float]
+    page_number: int
+
+class Table:
+    table_id: int
+    bbox: Tuple[float, float, float, float]
+    page_number: int
+    image_data: Optional[bytes]
+    element_paragraph_ids: List[int]
+
+class Figure:
+    figure_id: int
+    bbox: Tuple[float, float, float, float]
+    page_number: int
+    image_data: Optional[bytes]
+    element_paragraph_ids: List[int]
+```
+
+## 貢献
+
+貢献は歓迎します！以下の手順で貢献できます：
+
+1. リポジトリをフォーク
+2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
+
+## ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています - 詳細については[LICENSE](LICENSE)ファイルを参照してください。
+
+## 連絡先
+
+プロジェクトオーナー: [GitHub](https://github.com/ridgebull)
+
+---
+
+## 元の技術ドキュメント
+
+以下は開発者向けの詳細な技術ドキュメントです。
+
+### 翻訳手順
+
+#### Azure OCR
+
+##### 得られる結果
 
 **lines = List[line]**
 * page_number: int
@@ -13,7 +251,6 @@
 * type: Literal[`inline`, `display`]
 * value: str（latexコード）
 * page_number: int
-* 
 
 **paragraphs = List[Paragraph]**
 * page_number: int
@@ -30,8 +267,6 @@
 
 **sections = List[section]**
 * elements: List["/paragraps/0", "/tables/0", "/figures/0", "/sections/0"]
-
-
 
 ## エンティティの設計案
 ```python
