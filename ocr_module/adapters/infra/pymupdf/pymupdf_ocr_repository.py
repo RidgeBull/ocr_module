@@ -1,10 +1,8 @@
 from typing import Tuple, List, Dict, Any, Optional
 from ocr_module.domain.repositories import IOCRRepository
 from ocr_module.domain.entities import (
-    DisplayFormula,
     Document,
     Figure,
-    Formula,
     Page,
     Paragraph,
     Section,
@@ -582,7 +580,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         page: pymupdf.Page,
         page_number: int,
         table_id: int,
-        paragraphs: List[Paragraph] = None,  # 段落リストを追加
+        paragraphs: List[Paragraph],
     ) -> Tuple[List[Table], int]:
         """テーブル情報を処理する
 

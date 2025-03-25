@@ -55,7 +55,7 @@ class AzureOcrClient:
         document.ocr_usage_stats = ocr_usage_stats
 
         return document
-    
+
 class PyMuPDFOcrClient:
     def __init__(self):
         """PyMuPDFOcrClientの初期化
@@ -73,7 +73,7 @@ class PyMuPDFOcrClient:
             Document: PyMuPDFのOCR結果
         """
         document, ocr_usage_stats = self._ocr_repository.get_document(document_path)
-        
+
         # 数式IDの変更
         sections_with_formula_id = self._change_formula_id_usecase.execute(
             pages=document.pages,
@@ -83,6 +83,45 @@ class PyMuPDFOcrClient:
         document.ocr_usage_stats = ocr_usage_stats
 
         return document
+
+
+class OCRClient:
+    def __init__(
+        self,
+        ocr_engine: Literal["azure", "pymupdf"],
+        azure_endpoint: str,
+        azure_api_key: str,
+        azure_model_id: str,
+    ):
+        """OCRClientの初期化
+
+        Args:
+            ocr_engine (Literal["azure", "pymupdf"]): OCRエンジン
+            azure_endpoint (str): Azureのエンドポイント
+            azure_key (str): Azureのキー
+            azure_model_id (str, optional): AzureのモデルID. Defaults to "prebuilt-layout".
+        """
+        self._ocr_engine = ocr_engine
+        self._azure_ocr_client = AzureOcrClient(
+            endpoint=azure_endpoint,
+            key=azure_api_key,
+            model_id=azure_model_id,
+        )
+        self._pymupdf_ocr_client = PyMuPDFOcrClient()
+    
+    def get_document_from_path(self, document_path: str) -> Document:
+        """localのファイルパスのPDFに対するOCR結果（Document）を取得する
+
+        Args:
+            document_path (str): localのファイルパス
+        """
+        if self._ocr_engine == "azure":
+            return self._azure_ocr_client.get_document_from_path(document_path)
+        elif self._ocr_engine == "pymupdf":
+            return self._pymupdf_ocr_client.get_document_from_path(document_path)
+        else:
+            raise ValueError(f"Invalid OCR engine: {self._ocr_engine}")
+
 
 class OpenAITranslateClient:
     def __init__(
