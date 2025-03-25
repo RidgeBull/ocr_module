@@ -6,6 +6,7 @@ from .framework.resolver import (
     DeepLTranslateClient,
     TranslateClient,
     PyMuPDFOcrClient,
+    OCRClient,
 )
 from ocr_module.domain.entities import (
     Formula,
@@ -37,4 +38,5 @@ __all__ = [
     "TranslatedDocument",
     "TranslateClient",
     "PyMuPDFOcrClient",
+    "OCRClient",
 ]
