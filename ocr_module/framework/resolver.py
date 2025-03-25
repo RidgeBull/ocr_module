@@ -17,7 +17,8 @@ from openai import AzureOpenAI, OpenAI
 from typing import Literal
 
 class AzureOcrClient:
-    def __init__(self, endpoint: str, key: str, model_id: str = "prebuilt-layout"):
+
+    def __init__(self, endpoint: str, key: str, model_id: str):
         """AzureOcrClientの初期化
 
         Args:
@@ -86,12 +87,13 @@ class PyMuPDFOcrClient:
 
 
 class OCRClient:
+
     def __init__(
         self,
         ocr_engine: Literal["azure", "pymupdf"],
         azure_endpoint: str,
         azure_api_key: str,
-        azure_model_id: str,
+        azure_model_id: str = "prebuilt-layout",
     ):
         """OCRClientの初期化
 
@@ -108,7 +110,7 @@ class OCRClient:
             model_id=azure_model_id,
         )
         self._pymupdf_ocr_client = PyMuPDFOcrClient()
-    
+
     def get_document_from_path(self, document_path: str) -> Document:
         """localのファイルパスのPDFに対するOCR結果（Document）を取得する
 
