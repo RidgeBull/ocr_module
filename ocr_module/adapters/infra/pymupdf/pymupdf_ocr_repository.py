@@ -49,7 +49,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
         # ページごとに処理を行う
         for page_number in range(len(document)):
             page = document.load_page(page_number)
-            text_page = page.get_textpage_ocr()
+            text_page = page.get_textpage()
 
             # 段落と図のリストを取得
             paragraphs, figures = self._get_paragraphs_figures_from_text_page(
