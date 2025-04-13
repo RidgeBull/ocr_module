@@ -45,10 +45,10 @@ class PyMuPDFOCRRepository(IOCRRepository):
         figure_id: int = 0
         tables: List[Table] = []
         table_id: int = 0
+        page_number: int = 1
 
         # ページごとに処理を行う
-        for page_number in range(len(document)):
-            page = document.load_page(page_number)
+        for page in document:
             text_page = page.get_textpage()
 
             # 段落と図のリストを取得
@@ -96,6 +96,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
 
             sections.append(section_entity)
             pages.append(page_entity)
+            page_number += 1
             
         # ドキュメントエンティティを作成
         document_entity = Document(
