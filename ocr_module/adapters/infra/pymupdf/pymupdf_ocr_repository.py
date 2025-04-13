@@ -97,7 +97,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
             sections.append(section_entity)
             pages.append(page_entity)
             page_number += 1
-            
+
         # ドキュメントエンティティを作成
         document_entity = Document(
             pages=pages,
@@ -187,7 +187,10 @@ class PyMuPDFOCRRepository(IOCRRepository):
         paragraphs: List[Paragraph] = []
         figures: List[Figure] = []
 
-        # 2. ページ内のテキストブロック・画像ブロックを取得して処理する
+        page_width = text_page.rect.width
+        page_height = text_page.rect.height
+
+        # 1. ページ内のテキストブロック・画像ブロックを取得して処理する
         blocks = text_page.extractBLOCKS()
 
         for block in blocks:
@@ -198,10 +201,15 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 # 図のエンティティを作成
                 figure_entity = Figure(
                     figure_id=current_figure_id,
-                    bbox=(x0, y0, x1, y1),
+                    # ページの幅と高さを比較して、バウンディングボックスを作成
+                    bbox=(
+                        (x0, y0, x1, y1)
+                        if page_width < page_height
+                        else (y0, x0, y1, x1)
+                    ),
                     page_number=page_number,
                     image_data=None,
-                    element_paragraph_ids=[]
+                    element_paragraph_ids=[],
                 )
                 figures.append(figure_entity)
                 current_figure_id += 1
@@ -211,15 +219,17 @@ class PyMuPDFOCRRepository(IOCRRepository):
                 # 段落のエンティティを作成
                 paragraph_entity = Paragraph(
                     paragraph_id=current_paragraph_id,
-                    bbox=(x0, y0, x1, y1),
+                    # ページの幅と高さを比較して、バウンディングボックスを作成
+                    bbox=(
+                        (x0, y0, x1, y1)
+                        if page_width < page_height
+                        else (y0, x0, y1, x1)
+                    ),
                     page_number=page_number,
                     role=None,
                     content=block_content,
                 )
                 paragraphs.append(paragraph_entity)
                 current_paragraph_id += 1
-                
+
         return paragraphs, figures
-            
-
-
