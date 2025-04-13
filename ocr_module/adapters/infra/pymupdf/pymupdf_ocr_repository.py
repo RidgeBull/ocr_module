@@ -148,7 +148,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
             List[Table]: テーブルのリスト
         """
         tables: List[Table] = []
-        table_finder = page.find_tables(strategey="lines")
+        table_finder = page.find_tables(strategy="lines")
 
         for table in table_finder.tables:
             bbox = table.bbox
