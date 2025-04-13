@@ -206,7 +206,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     bbox=(
                         (x0, y0, x1, y1)
                         if width < height
-                        else (y0, x0, y1, x1)
+                        else (width - y0, x0, width - y1, x1)
                     ),
                     page_number=page_number,
                     image_data=None,
@@ -224,7 +224,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     bbox=(
                         (x0, y0, x1, y1)
                         if width < height
-                        else (y0, x0, y1, x1)
+                        else (width - y0, x0, width - y1, x1)
                     ),
                     page_number=page_number,
                     role=None,
