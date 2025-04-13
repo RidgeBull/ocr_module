@@ -54,6 +54,8 @@ class PyMuPDFOCRRepository(IOCRRepository):
             # 段落と図のリストを取得
             paragraphs, figures = self._get_paragraphs_figures_from_text_page(
                 text_page,
+                page.rect.width,
+                page.rect.height,
                 page_number,
                 paragraph_id,
                 figure_id,
@@ -169,6 +171,8 @@ class PyMuPDFOCRRepository(IOCRRepository):
     @staticmethod
     def _get_paragraphs_figures_from_text_page(
         text_page: pymupdf.TextPage,
+        width: float,
+        height: float,
         page_number: int,
         current_paragraph_id: int,
         current_figure_id: int,
@@ -187,9 +191,6 @@ class PyMuPDFOCRRepository(IOCRRepository):
         paragraphs: List[Paragraph] = []
         figures: List[Figure] = []
 
-        page_width = text_page.rect.width
-        page_height = text_page.rect.height
-
         # 1. ページ内のテキストブロック・画像ブロックを取得して処理する
         blocks = text_page.extractBLOCKS()
 
@@ -204,7 +205,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     # ページの幅と高さを比較して、バウンディングボックスを作成
                     bbox=(
                         (x0, y0, x1, y1)
-                        if page_width < page_height
+                        if width < height
                         else (y0, x0, y1, x1)
                     ),
                     page_number=page_number,
@@ -222,7 +223,7 @@ class PyMuPDFOCRRepository(IOCRRepository):
                     # ページの幅と高さを比較して、バウンディングボックスを作成
                     bbox=(
                         (x0, y0, x1, y1)
-                        if page_width < page_height
+                        if width < height
                         else (y0, x0, y1, x1)
                     ),
                     page_number=page_number,
